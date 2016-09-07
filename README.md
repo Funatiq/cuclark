@@ -1,5 +1,5 @@
-== ABOUT
-
+ABOUT
+-----
 CuCLARK is a metagenomic classifier for CUDA-enabled GPUs, based on CLARK (http://clark.cs.ucr.edu/).
 
 The program comes in two variants: CuCLARK and CuCLARK-l.
@@ -12,13 +12,13 @@ To use CuCLARK as a metagenome classier, it is recommended to use the provided s
 for that purpose, which are detailed in the section "CLASSIFICATION OF METAGENOMIC SAMPLES".
 
 
-== AUTHOR
-
+AUTHOR
+-----
 Robin Kobus, master student at Institute of Computer Science, JGU Mainz, Germany
 
 
-== ORIGINAL CLARK AUTHORS
-
+ORIGINAL CLARK AUTHORS
+-----
 Rachid Ounit (1), Steve Wanamaker(2), Timothy J Close (2) and
 Stefano Lonardi (1). 
 1: Computer Science and Engineering department, University of California, 
@@ -29,8 +29,8 @@ Riverside CA 92521
 Project dates: 08/2013 to 03/2015.
 
 
-== LICENSE
-
+LICENSE
+-----
 CuCLARK, CLARK for CUDA-enabled GPUs.
 Copyright 2016, Robin Kobus <rkobus@students.uni-mainz.de>
    
@@ -51,8 +51,8 @@ You should have received a copy of the GNU General Public License
 along with CuCLARK. If not, see <http://www.gnu.org/licenses/>.
 
 
-== COMPATIBILITY TO CLARK
-
+COMPATIBILITY TO CLARK
+-----
 CuCLARK uses many of the same command parameters as CLARK, but removes some of them and 
 introduces new ones (see MANUAL & OPTIONS for details). CuCLARK's only mode of operation 
 is comparable to CLARK's "full" mode. For a low-level description of CLARK's main features 
@@ -70,14 +70,14 @@ NOTE: It is possible to substitute the hash table source files (hashTable_hh.hh,
 of CLARK version 1.1.3 with the ones of CuCLARK. This way CLARK can create a database compatible to 
 CuCLARK, even on a computer that does not provide any CUDA device.
 
-The scripts provided by CLARK to evaluate its results (estimate_abundance.sh, 
-evaluate_density_confidence.sh, evaluate_density_gamma.sh) can also be used for CuCLARK, 
+The scripts provided by CLARK to evaluate its results (`estimate_abundance.sh`, 
+`evaluate_density_confidence.sh`, `evaluate_density_gamma.sh`) can also be used for CuCLARK, 
 because it uses the same result format. Please refer to CLARK's README.txt for further 
 details on these scripts.
 
 
-== SOFTWARE & SYSTEM REQUIREMENTS
-
+SOFTWARE & SYSTEM REQUIREMENTS
+-----
 1) C++ COMPILER VERSION       
 The main requirement is a 64-bit operating system (Linux or Mac), and the GNU GCC to
 compile version 4.4 or higher. Multi-threading operations are assured by the openmp
@@ -108,96 +108,97 @@ CuCLARK was tested with CUDA version 7.5. Although we expect CuCLARK to work wit
 we do not guarantee it.
 
 
-== INSTALLATION
-
-Copy the whole "CuCLARK" folder to hard disk and execute the installation script ("./install.sh").
+INSTALLATION
+-----
+Copy the whole "CuCLARK" folder to hard disk and execute the installation script (`./install.sh`).
 The installer builds binaries (CuCLARK and CuCLARK-l, in the subfolder "exe").
 
 In the main folder, you can also notice that several scripts are available.
 Especially:
-- set_targets.sh and classify_metagenome.sh: They allow you to classify your metagenomes
+- `set_targets.sh` and `classify_metagenome.sh`: They allow you to classify your metagenomes
 against several database(s) (downloaded from NCBI or available "locally" in your disk).
 
 
 
 Following is a version of CLARK's usage guide adjusted to CuCLARK's needs.
 
-== MANUAL & OPTIONS
-
+MANUAL & OPTIONS
+-----
 CuCLARK offers several options to run the classification. 
 
 A typical command line to run CuCLARK (or CuCLARK-l) looks like:
+```
 $ ./CuCLARK -k <kmerSize> -T <fileTargets> -t <minFreqTarget> -D <directoryDB/> -O <fileObjects> -R <fileResults> -n <numberofthreads> ...
-
+```
 Definitions of parameters:
 
--k <kmerSize>,       	 	k-mer length:	integer, >= 2 and <= 32. 
+`-k <kmerSize>`,       	 	k-mer length:	integer, >= 2 and <= 32. 
 			 	The default value for this parameter is 31, except for CuCLARK-l (it is 27).
 
--T <fileTargets>,    	 	The targets definition is written in fileTargets: filename.  
+`-T <fileTargets>`,    	 	The targets definition is written in fileTargets: filename.  
 				This is a two-column file (separated by space, comma or tab), such that, for each line:
 				column 1: the filename of a reference sequence
 				column 2: the target ID (taxon name, or taxonomy ID, ...) of the reference sequence 
 				(See example below).
 				This parameter is mandatory.
 
--t <minFreqTarget>,    		minimum of k-mer frequency/occurence for the discriminative k-mers:  integer, >=0.
+`-t <minFreqTarget>`,    	minimum of k-mer frequency/occurence for the discriminative k-mers:  integer, >=0.
 				The default value is 0. For example, for 1 (or, 2), the program will discard any 
 				discriminative k-mer that appears only once (or, less than twice).
 
--D <directoryDB/>,   	 	Directory of the database : pathname.  
+`-D <directoryDB/>`,   	 	Directory of the database : pathname.  
 				This parameter is mandatory.
 
--O <fileObjects>,    	 	file containing objects: filename.  
+`-O <fileObjects>`,    	 	file containing objects: filename.  
 				This parameter is mandatory.
 
--P <file1> <file2>,		Paired-end fastq files: filenames.
+`-P <file1> <file2>`,		Paired-end fastq files: filenames.
 
--R <fileResults>,    	 	file to store results:  filename.  
+`-R <fileResults>`,    	 	file to store results:  filename.  
 				Results are stored in CSV format in the file <fileResults>.csv (the extension 
 				".csv" is automatically added to the filename).
 				This parameter is mandatory. 
 				
--n <numberofthreads>,	 	number of threads: integer >= 1.
+`-n <numberofthreads>`,	 	number of threads: integer >= 1.
 				The program runs in parallel for the classification if n > 1.
 
--b <numberofbatches>,		number of batches: integer >= 1.
+`-b <numberofbatches>`,		number of batches: integer >= 1.
 				The input files are divided into batches. The GPUs process one batch at a time.
 				It is recommended to choose a high number of batches to reduce the amount of memory required per batch.
 
--d <numberofdevices>,		number of CUDA devices to use: integer >= 1.
+`-d <numberofdevices>`,		number of CUDA devices to use: integer >= 1.
 				If unspecified, CuCLARK uses all available CUDA devices.
 
--g <iterations>,		"gap" or number of non-overlapping k-mers to pass when creating the
+`-g <iterations>`,		"gap" or number of non-overlapping k-mers to pass when creating the
 				database (for CuCLARK-l only). The bigger the gap is, the lower the RAM 
 				usage is. The default value is 4, but the user can increase this value if 
 				needed to reduce the RAM usage (but this will degrade the sensitivity).
 
--s <factor>,			sampling factor value (for CuCLARK-l only). 
+`-s <factor>`,			sampling factor value (for CuCLARK-l only). 
 				The higher is this value, the higher are the classification speed
 				and the precision. However, our experiments show that the sensitivity
 				can be degraded.
 
---tsk,               	 	to request a detailed creation of the database 
+`--tsk`,               	 	to request a detailed creation of the database 
 				(target specific k-mers files). For each target ID, the program
 				will create a file containing all target specific k-mers.
 				This option may require a high amount of disk space to complete. 
 				This option is not available for CuCLARK-l.
 
---extended			to request the extended output of results. This
+`--extended`			to request the extended output of results. This
 				includes hit counts for all targets. When selecting this feature,
 				the disk spaced by the results file is significantly increased.
 
 When a filename is required, we recommend absolute paths.
 
 
-== CLASSIFICATION OF METAGENOMIC SAMPLES
-
+CLASSIFICATION OF METAGENOMIC SAMPLES
+-----
 We provide several scripts to facilitate the classification in the context of 
 metagenomics. CuCLARK can preprocess databases of bacteria, viruses or human (downloaded 
 from NCBI) or a customized set of genomes.
 
-First, we present here two scripts, "set_targets.sh" and "./classify_metagenome.sh" that 
+First, we present here two scripts, `set_targets.sh` and `./classify_metagenome.sh` that 
 work together.
 
 
@@ -205,30 +206,30 @@ work together.
 
 1.1) Step I: Setting targets
 
-After installing CuCLARK (./install.sh), the user must create a directory to store all 
+After installing CuCLARK (`./install.sh`), the user must create a directory to store all 
 reference sequences (bacteria, viruses, human and custom). For all our examples below,
-we name this directory path in a generic way <DIR_DB/> for clarity. This directory
+we name this directory path in a generic way `<DIR_DB/>` for clarity. This directory
 can be anywhere in your disk(s).
 
 Then, the user must indicate what database(s) to consider for the classification among 
 bacteria, viruses, human and/or custom.
 
 For example, only bacteria genomes:
-$ ./set_targets.sh <DIR_DB/> bacteria
+`$ ./set_targets.sh <DIR_DB/> bacteria`
 
 To work with bacteria, viruses and human:
-$ ./set_targets.sh <DIR_DB/> bacteria viruses human
+`$ ./set_targets.sh <DIR_DB/> bacteria viruses human`
 
 To classify against a custom database:
 The user will need to paste its sequences (fasta files with GI number in header, and 
-one fasta file per reference sequence) in the directory "Custom", inside <DIR_DB/>. 
-To do so, the user must (1) create the directory "Custom" inside  <DIR_DB/> (if it
+one fasta file per reference sequence) in the directory "Custom", inside `<DIR_DB/>`. 
+To do so, the user must (1) create the directory "Custom" inside  `<DIR_DB/>` (if it
 does not exist yet) (2) copy or move sequences of interest in Custom and (3) run:
-$ ./set_targets.sh <DIR_DB/> custom
+`$ ./set_targets.sh <DIR_DB/> custom`
 
 
 In general case (when the user selects bacteria, viruses and/or human), 
-if the directory <DIR_DB/> is empty, then the script will download all
+if the directory `<DIR_DB/>` is empty, then the script will download all
 the selected database(s) and also data of the taxonomy tree, from NCBI.
 Once the sequences are found or downloaded in the directory, the script will build 
 the targets for a given taxonomy rank. 
@@ -236,10 +237,10 @@ the targets for a given taxonomy rank.
 The default taxonomy rank is species. To use a different taxonomy rank, for example, 
 genus, the command line is (from the example selecting bacteria, viruses and human):
 
-$ ./set_targets.sh <DIR_DB/> bacteria viruses human --genus
+`$ ./set_targets.sh <DIR_DB/> bacteria viruses human --genus`
 
 In the current version of CuCLARK, the user can choose between six ranks (species to phylum):
---species (the default value), --genus, --family, --order, --class or --phylum.
+`--species` (the default value), `--genus`, `--family`, `--order`, `--class` or `--phylum`.
 
 Indeed, the strength of CuCLARK is to be able to classify quickly and accurately 
 metagenomic samples by using only one taxonomy rank. So as a general rule when 
@@ -255,7 +256,7 @@ need to run again set_targets.sh with updated parameters before proceeding to st
 1.2) Step II: Running the classification
 
 The script to run the classification of a metagenomic sample against the database(s) 
-previously set in step I is "classify_metagenome.sh".
+previously set in step I is `classify_metagenome.sh`.
 
 For your convenience, this script runs the executable CuCLARK (or CuCLARK-l) and allows you 
 to pass few parameters.
@@ -263,18 +264,18 @@ to pass few parameters.
 For example, say objects to be classified are reads in "sample.fa" (e.g., located in the 
 current directory), and results to be stored in "result.csv". A basic command line is:
 
-$ ./classify_metagenome.sh -O ./sample.fa -R ./result
+`$ ./classify_metagenome.sh -O ./sample.fa -R ./result`
 
-As explained in the section "MANUAL & OPTIONS", thanks to identifiers "-O" and "-R", 
+As explained in the section "MANUAL & OPTIONS", thanks to identifiers `-O` and `-R`, 
 the script will pass the objects file "sample.fa" and results will be stored
 in "./result.csv". Objects are classified against the targets and the taxonomy rank
-defined by the last execution of ./set_targets.sh.
+defined by the last execution of `./set_targets.sh`.
 
 IMPORTANT NOTES:
 - The targets definition is automatically passed to CLARK in step II. The file has been
- computed by set_targets.sh.
+ computed by `set_targets.sh`.
 
-- The script set_targets.sh assumes that each reference file from bacteria, viruses or custom
+- The script `set_targets.sh` assumes that each reference file from bacteria, viruses or custom
 database contains a GI number (in the RefSeq records format: ">gi|<number>|ref|<accession>|<text>"). 
 If a GI number is missing in a file, then this file will not be used for the classification. 
 
@@ -288,51 +289,51 @@ If some files are excluded, then it will probably mean that they have been remov
 for curations for example (visit the RefSeq FAQ webpage).
 
 - The database files (*.ky, *.lb and *.sz) will be created inside some subdirectory of the 
-specified database directory in step I (i.e., "./DBD/") by classify_metagenome.sh.
+specified database directory in step I (i.e., "./DBD/") by `classify_metagenome.sh`.
 
 - The default values (the k-mer length, the number of threads, etc.) are used 
 if not specified by the user, just like indicated in the previous section.
 
-- The script classify_metagenome.sh still allows you to pass customized parameters and 
-options, similarly to the previous section. classify_metagenome.sh follows options defined
+- The script `classify_metagenome.sh` still allows you to pass customized parameters and 
+options, similarly to the previous section. `classify_metagenome.sh` follows options defined
 in "MANUAL & OPTIONS"(see below some examples). So you can change the k-mer length,
 the number of parallel threads, etc.
 
 We present below some examples of customized classification using classify_metagenome.sh.
 
 To use 20-mers (instead of 31-mers):
-$ ./classify_metagenome.sh -O ./sample.fa -R ./result -k 20
+`$ ./classify_metagenome.sh -O ./sample.fa -R ./result -k 20`
 
 To request 2 threads and 16 batches:
-$ ./classify_metagenome.sh -O ./sample.fa -R ./result -n 2 -b 16
+`$ ./classify_metagenome.sh -O ./sample.fa -R ./result -n 2 -b 16`
 
 To limit the number of CUDA devices to use to 1:
-$ ./classify_metagenome.sh -O ./sample.fa -R ./result -d 1
+`$ ./classify_metagenome.sh -O ./sample.fa -R ./result -d 1`
 
 To request execution with gzipped objects file, and using 8 threads:
-$ ./classify_metagenome.sh -O ./sample.fa.gz -R ./result -n 8 --gzipped
+`$ ./classify_metagenome.sh -O ./sample.fa.gz -R ./result -n 8 --gzipped`
 
 Another example, for classifying paired-end reads (./sample1.fastq and ./sample2.fastq):
-$ ./classify_metagenome.sh -P ./sample1.fastq ./sample2.fastq -R ./result
+`$ ./classify_metagenome.sh -P ./sample1.fastq ./sample2.fastq -R ./result`
 
 
 Note:
 This script can run CuCLARK-l instead of CuCLARK, for workstations with limited RAM. 
-Then, the user can indicate it with the option  "--light". For example:
+Then, the user can indicate it with the option  `--light`. For example:
 
-$ ./classify_metagenome.sh -P ./sample1.fastq ./sample2.fastq -R ./result --light
+`$ ./classify_metagenome.sh -P ./sample1.fastq ./sample2.fastq -R ./result --light`
 
 Note:
-Typing only "./classify_metagenome.sh" in the terminal will prompt the help describing 
+Typing only `./classify_metagenome.sh` in the terminal will prompt the help describing 
 options and parameters.
 
 
-== RESULTS FORMAT
-
+RESULTS FORMAT
+-----
 Results are in CSV format.
 
 The default results format is the following for each line:
-<Object_ID>,<Length of object>,<Gamma>,<first assignment>,<hit count of first>,<second assignment>,<hit count of second>,<confidence score> where :
+`<Object_ID>,<Length of object>,<Gamma>,<first assignment>,<hit count of first>,<second assignment>,<hit count of second>,<confidence score>` where :
 * the "Object_ID"        is the tag name indicated in the header (after ">" or "@") for each object.
 * Length of object       is the number of bases (A,C,G,T,U or N) the object has.
 * Gamma                  is the ratio between the total number of hit found in the object 
@@ -347,7 +348,7 @@ The default results format is the following for each line:
 
 
 With the option "--extended", the results format is the following for each line:
-<Object_ID>,<hit count in target 1>,...,<hit count in target N>,<Length of object>,<Gamma>,<first assignment>,<hit count of first>,<second assignment>,<hit count of second>,<confidence score> where :
+`<Object_ID>,<hit count in target 1>,...,<hit count in target N>,<Length of object>,<Gamma>,<first assignment>,<hit count of first>,<second assignment>,<hit count of second>,<confidence score>` where :
 * the "Object_ID"        is the tag name indicated in the header (after ">" or "@") for each 
 			 object, and N is the number of targets. 
 * hit count in target i  is the number of k-mers specific to target i that are in the object.

@@ -8,7 +8,7 @@ CuCLARK is designed for workstations which can provide enough RAM to fit large d
 CuCLARK-l uses a much smaller database and can be run on computers with 4 GB of RAM and 
 a CUDA-enabled with at least 1 GB of memory.
 
-To use CuCLARK as a metagenome classier, it is recommended to use the provided scripts 
+To use CuCLARK as a metagenome classifier, it is recommended to use the provided scripts 
 for that purpose, which are detailed in the section "CLASSIFICATION OF METAGENOMIC SAMPLES".
 
 
@@ -117,6 +117,8 @@ In the main folder, you can also notice that several scripts are available.
 Especially:
 - `set_targets.sh` and `classify_metagenome.sh`: They allow you to classify your metagenomes
 against several database(s) (downloaded from NCBI or available "locally" in your disk).
+See section "CLASSIFICATION OF METAGENOMIC SAMPLES" for details.
+- `download_data.sh`, `download_taxondata.sh` and `make_metadata.sh` are called by `set_targets.sh` to download a specific database and taxonomy tree data from NCBI, and to associate the genomes of the database with the corresponding taxons, respectively. Although it is possible to use these scripts on their own, we recommend to simply use `set_targets.sh` to carry out all necessery steps.
 
 
 

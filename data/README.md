@@ -6,6 +6,12 @@ http://ccb.jhu.edu/software/kraken/
 The datasets wgsim200 and wgsim250 can be downloaded at:
 https://seafile.rlp.net/f/ab4ac98d55/
 
+The art454 dataset can be downloaded at:
+https://seafile.rlp.net/f/e3bc21877b/
+
+The fqIon dataset can be downloaded at:
+https://seafile.rlp.net/f/d0b909988b/
+
 
 Example 
 -------

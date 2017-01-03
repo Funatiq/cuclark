@@ -1,6 +1,6 @@
 /*
    CuCLARK, CLARK for CUDA-enabled GPUs.
-   Copyright 2016, Robin Kobus <rkobus@students.uni-mainz.de>
+   Copyright 2016-2017, Robin Kobus <rkobus@students.uni-mainz.de>
    
    based on CLARK version 1.1.3, CLAssifier based on Reduced K-mers.
    Copyright 2013-2016, Rachid Ounit <rouni001@cs.ucr.edu>
@@ -39,86 +39,6 @@
 #define MAXK 32
 
 using namespace std;
-
-bool validFile(const char* _file)
-{
-	FILE * fd = fopen(_file, "r");
-	if (fd == NULL)
-	{	return false;	}
-	fclose(fd);
-	return true;
-}
-
-void mergePairedFiles(const char* _file1, const char* _file2, const char* _objFile)
-{
-	string line1, line2 = "";
-	vector<string> ele1;
-	vector<string> ele2;
-	vector<char> sep;
-	sep.push_back(' ');
-	sep.push_back('/');
-	sep.push_back('\t');
-	FILE * fd1 = fopen(_file1, "r");
-	FILE * fd2 = fopen(_file2, "r");
-	getLineFromFile(fd1, line1);
-	getLineFromFile(fd2, line2);
-	if (line1[0] != line2[0])
-	{
-		cerr << "Error: the files have different format!"<< endl;
-		exit(1);
-	}
-	char delim = line1[0];
-	if (delim != '@')
-	{
-		cerr << "Error: paired-end reads must be FASTQ files!"<< endl;
-                exit(1);	
-	}
-	sep.push_back(delim);
-	rewind(fd1);
-        rewind(fd2);
-	ofstream fout(_objFile, std::ios::binary);
-	while(getLineFromFile(fd1, line1) && getLineFromFile(fd2, line2))
-	{
-		if (line1[0] == delim && line2[0] == delim)
-		{
-			ele1.clear();
-			ele2.clear();
-			getElementsFromLine(line1, sep, ele1);
-			getElementsFromLine(line2, sep, ele2);
-			if (ele1[0] != ele2[0])
-			{
-				cerr << "Error: mismatching names found "<< ele1[0] << " vs " << ele2[0] << endl;
-				exit(1);
-			}
-			fout << ">" << ele1[0] << endl;
-			if (getLineFromFile(fd1, line1) && getLineFromFile(fd2, line2))
-			{
-				// Add "N" to concatenate sequences, and separate content of each sequence
-				 fout << line1 << "N" << line2 << endl;
-				if (getLineFromFile(fd1, line1) && getLineFromFile(fd2, line2))
-				{
-					if (getLineFromFile(fd1, line1) && getLineFromFile(fd2, line2))
-					{	continue;	}
-				}
-			}
-			else
-			{
-				cerr << "Error: Sequence missing for the read "<< ele1[0]<< endl;
-				exit(1);
-			}
-			continue;
-		}
-	}
-	fclose(fd1);
-	fclose(fd2);
-	fout.close();
-}
-
-void deleteFile(const char* _filename)
-{
-	if (_filename != NULL)
-		remove(_filename);
-}
 
 void printUsage()	
 {
@@ -161,7 +81,7 @@ int main(int argc, char** argv)
 		{       printUsage();   return 0; }
 		if (val == "--version" || val == "--VERSION")
 		{
-			cout << "Version: " << VERSION << " (Copyright 2016 Robin Kobus, rkobus@students.uni-mainz.de)" << endl;
+			cout << "Version: " << VERSION << " (Copyright 2016-2017 Robin Kobus, rkobus@students.uni-mainz.de)" << endl;
 			cout << "Based on CLARK version 1.1.3 (UCR CS&E. Copyright 2013-2016 Rachid Ounit, rouni001@cs.ucr.edu) " << endl;	
 			return 0; 
 		}
@@ -178,7 +98,7 @@ int main(int argc, char** argv)
 	size_t k = 31, mode = 0, cpu = 1, iterKmers = 0;
 	ITYPE minT = 0, minO = 0, sfactor = 1;
 	bool cLightDB = false, ldm = false, tsk = false, kso= false, ext = false, isReduced = false;
-	int i_targets = -1, i_objects = -1, i_folder=-1, i_results =-1;
+	int i_targets = -1, i_objects = -1, i_objects2 = -1, i_folder=-1, i_results =-1;
 	char * mergedFiles = NULL;
 	
 	size_t batches = 1, dbParts = 1, devices = 0;
@@ -258,12 +178,13 @@ int main(int argc, char** argv)
         {
             if (i+2 >= argc) {cerr << "Please specify the paired-end reads!"<< endl; exit(1);    }
             i++;
-			i_objects =  0;
+			i_objects =  i;
+			i_objects2 = i+1;
             if (!validFile(argv[i++])) { cerr <<"Failed to find/read " << argv[i-1] << endl; exit(1);}
 			if (!validFile(argv[i]))   { cerr <<"Failed to find/read " << argv[i] << endl; exit(1);}
-			mergedFiles = (char *) calloc(strlen(argv[i-1])+25, sizeof(char));
-			sprintf(mergedFiles,"%s_ConcatenatedByCLARK.fa",argv[i-1]);
-			mergePairedFiles(argv[i-1], argv[i], mergedFiles);
+			//~ mergedFiles = (char *) calloc(strlen(argv[i-1])+25, sizeof(char));
+			//~ sprintf(mergedFiles,"%s_ConcatenatedByCLARK.fa",argv[i-1]);
+			//~ mergePairedFiles(argv[i-1], argv[i], mergedFiles);
  			continue;
  		}
 		if (val ==   "-D")
@@ -344,8 +265,14 @@ int main(int argc, char** argv)
 		printUsage();
 		exit(1);
 	}
-	const char * objects = i_objects > 0 ? argv[i_objects] : mergedFiles;
-	const bool isPaired = i_objects == 0;	
+	const char * objects 	= i_objects > 0 ? argv[i_objects] : NULL;
+	const char * objects2 	= i_objects2 > 0 ? argv[i_objects2] : NULL;
+	const bool paired 	= i_objects2 > 0;
+	
+	string folder(argv[i_folder]);
+	if (folder[folder.size()-1] != '/')
+	{	folder.push_back('/');	}
+	
 	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 	
 	size_t t_b = log(HTSIZE)/log(4.0);	// 15 for (Cu)CLARK, 12 for (Cu)CLARK-l
@@ -357,25 +284,34 @@ int main(int argc, char** argv)
 	if (k <= max16)
 	{
 		// Use 2Bytes to store each discriminative k-mer
-		CuCLARK<T16> classifier(k, argv[i_targets], argv[i_folder], minT, tsk, cLightDB, iterKmers, cpu, sfactor, ldm, batches, devices);
-		classifier.run(objects, argv[i_results], minO, ext, isPaired);
-		deleteFile(mergedFiles);
+		CuCLARK<T16> classifier(k, argv[i_targets], folder.c_str(), minT, tsk, cLightDB, iterKmers, cpu, sfactor, ldm, batches, devices);
+		if (paired)
+			classifier.run(objects, objects2, argv[i_results], minO, ext);
+		else
+			classifier.run(objects, argv[i_results], minO, ext);
+		//~ deleteFile(mergedFiles);
 		exit(0);
 	}
 	if (k <= max32)
 	{
 		// Use 4Bytes to store each discriminative k-mer
-		CuCLARK<T32> classifier(k, argv[i_targets], argv[i_folder], minT, tsk, cLightDB, iterKmers, cpu, sfactor, ldm, batches, devices);
-		classifier.run(objects, argv[i_results], minO, ext, isPaired);
-		deleteFile(mergedFiles);
+		CuCLARK<T32> classifier(k, argv[i_targets], folder.c_str(), minT, tsk, cLightDB, iterKmers, cpu, sfactor, ldm, batches, devices);
+		if (paired)
+			classifier.run(objects, objects2, argv[i_results], minO, ext);
+		else
+			classifier.run(objects, argv[i_results], minO, ext);
+		//~ deleteFile(mergedFiles);
 		exit(0);
 	}
 	if (k <= MAXK)
 	{
 		// Use 8Bytes to store each discriminative k-mer
-		CuCLARK<T64> classifier(k, argv[i_targets], argv[i_folder], minT, tsk, cLightDB, iterKmers, cpu, sfactor, ldm, batches, devices);
-		classifier.run(objects, argv[i_results], minO, ext, isPaired);
-		deleteFile(mergedFiles);
+		CuCLARK<T64> classifier(k, argv[i_targets], folder.c_str(), minT, tsk, cLightDB, iterKmers, cpu, sfactor, ldm, batches, devices);
+		if (paired)
+			classifier.run(objects, objects2, argv[i_results], minO, ext);
+		else
+			classifier.run(objects, argv[i_results], minO, ext);
+		//~ deleteFile(mergedFiles);
 		exit(0);
 	}
 	std::cout <<"This version of CuCLARK does not support k-mer length strictly higher than " << MAXK << std::endl;

@@ -1,7 +1,7 @@
 #!/bin/sh
 
 #
-#   CuCLARK, CLARK for CUDA-enabled GPUs.
+#   cuCLARK, CLARK for CUDA-enabled GPUs.
 #   Copyright 2016, Robin Kobus <rkobus@students.uni-mainz.de>
 #   
 #   based on CLARK version 1.1.3, CLAssifier based on Reduced K-mers.
@@ -20,13 +20,13 @@
 #
 #   You should have received a copy of the GNU General Public License
 #   along with this program.  If not, see <http://www.gnu.org/licenses/>.
-#                  (Bacteria, Viruses, Human and Custom).
 
 #
-#   set_targets.sh: To set up targets from bacteria, viruses, human or custom database.
-#
-#   Changes:
-#   Changed subDB folder name to avoid confusion of CLARK's and CuCLARK's databases.
+#   set_targets.sh: To create targets definition of selected databases
+#                   (Bacteria, Viruses, Human and Custom).
+
+#   Differences to CLARK:
+#   Changed subDB folder name to avoid confusion of CLARK's and cuCLARK's databases.
 #
 
 if [ $# -lt 2 ]; then
@@ -94,21 +94,21 @@ do
 	if [ "$db" != "$DBDR" ]; then
 		PRE=`echo $db | cut -c1-2`
 		if [ "$PRE" != "--" ]; then
-		echo -n "Collecting metadata of $db... "
-		./make_metadata.sh $db $DBDR
-		if [ ! -s $DBDR/.$db ]; then
-			exit
-		fi
-		if [ ! -f $DBDR/.taxondata ]; then
-			exit
-		fi
-		echo "done."
-		if [ -s $DBDR/.$db.fileToTaxIDs ]; then 
-			./exe/getTargetsDef $DBDR/.$db.fileToTaxIDs $RANK >> $DBDR/targets.txt 
-			subDB="$subDB$db$us"
-			cat files_excluded.txt >> $DBDR/.tmp
-			rm files_excluded.txt
-		fi
+			echo -n "Collecting metadata of $db... "
+			./make_metadata.sh $db $DBDR
+			if [ ! -s $DBDR/.$db ]; then
+				exit
+			fi
+			if [ ! -f $DBDR/.taxondata ]; then
+				exit
+			fi
+			echo "done."
+			if [ -s $DBDR/.$db.fileToTaxIDs ]; then 
+				./exe/getTargetsDef $DBDR/.$db.fileToTaxIDs $RANK >> $DBDR/targets.txt 
+				subDB="$subDB$db$us"
+				cat files_excluded.txt >> $DBDR/.tmp
+				rm files_excluded.txt
+			fi
 		fi
 	fi
 done

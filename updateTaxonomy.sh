@@ -18,21 +18,13 @@
 #   along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
 #   Copyright 2013-2016, Rachid Ounit <rouni001@cs.ucr.edu>
-#   download_taxondata.sh: To download taxonomy tree data from NCBI site. 
+#   updateTaxonomy.sh: To download latest files of taxonomy tree data from NCBI site. 
 #
 
-if [ $# -ne 1 ]; then
 
-echo "Usage: $0 <Directory: directory to store taxonomy data> "
-echo "Note: if the chosen directory is not empty, then its content will be erased."
-exit
-
-fi
-
-rm -Rf $1
-mkdir -m 775 $1
-
-cd $1
+for DIR in `cat ./.DBDirectory`
+do
+cd $DIR/taxonomy/
 
 # Download taxonomy tree info (GI <-> TaxID, and TaxID: info)
 # Download taxonomy tree info (AccessionID <-> TaxID, and TaxID: nodes, merged, names)
@@ -45,21 +37,22 @@ wget ftp://ftp.ncbi.nih.gov/pub/taxonomy/taxdump.tar.gz
 
 # Extrat downloaded data
 if [ -s nucl_gb.accession2taxid.gz ] && [ -s taxdump.tar.gz ] && [ -s nucl_wgs.accession2taxid.gz ] ; then
-	echo "Uncompressing files... "
-	#gunzip gi_taxid_nucl.dmp.gz
-	gunzip nucl_wgs.accession2taxid.gz
-	gunzip nucl_gb.accession2taxid.gz
-	tar -zxf taxdump.tar.gz
-	if [ -s nucl_gb.accession2taxid ] && [ -s nodes.dmp ] && [ -s nucl_wgs.accession2taxid ]; then
-		cat nucl_gb.accession2taxid > ./nucl_accss
-		cat nucl_wgs.accession2taxid >> ./nucl_accss
-		touch ../.taxondata
-		exit
-	else
-		echo "Failed to uncompress taxonomy data."
-	fi
+        echo "Uncompressing files... "
+        #gunzip gi_taxid_nucl.dmp.gz
+        gunzip nucl_wgs.accession2taxid.gz
+        gunzip nucl_gb.accession2taxid.gz
+        tar -zxf taxdump.tar.gz
+        if [ -s nucl_gb.accession2taxid ] && [ -s nodes.dmp ] && [ -s nucl_wgs.accession2taxid ]; then
+                cat nucl_gb.accession2taxid > ./nucl_accss
+                cat nucl_wgs.accession2taxid >> ./nucl_accss
+                touch ../.taxondata
+                exit
+        else
+                echo "Failed to uncompress taxonomy data."
+        fi
 else
-	echo "Failed to download taxonomy data!"
-	exit
+        echo "Failed to download taxonomy data!"
+        exit
 fi
 
+done

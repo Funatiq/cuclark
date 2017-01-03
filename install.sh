@@ -1,7 +1,7 @@
 #! /bin/sh
 
 #
-#   CuCLARK, CLARK for CUDA-enabled GPUs.
+#   cuCLARK, CLARK for CUDA-enabled GPUs.
 #   Copyright 2016, Robin Kobus <rkobus@students.uni-mainz.de>
 #   
 #   based on CLARK version 1.1.3, CLAssifier based on Reduced K-mers.
@@ -23,48 +23,10 @@
 # 
 
 #
-#   install.sh: Install CuCLARK and CuCLARK-l,
-#		also programs for target definition.
-# 
+#   install.sh: Install cuCLARK and cuCLARK-l,
+#		also programs for target definition
+#		in folder ./exe/
 
-## Checking if OPENMP libraries are installed
-echo |cpp -fopenmp -dM |grep -i open > .tmp
-NB=`wc -l < .tmp`
-
-if [ ! -d ./exe/ ]; then
-	mkdir ./exe/
-fi
-
-# Install programs for target definition
-g++ -o ./exe/getTargetsDef ./src_original/getTargetsDef.cc ./src_original/file.cc -O3
-g++ -o ./exe/getGInTaxID ./src_original/getGInTaxID.cc ./src_original/file.cc -O3
-g++ -o ./exe/getfilesToTaxNodes ./src_original/getfilesToTaxNodes.cc ./src_original/file.cc -O3
-
-# Install CuCLARK and CuCLARK-l
-rm -Rf ./.dCuCLARK/
-mkdir ./.dCuCLARK/
-cp ./src_original/*.hh ./.dCuCLARK/
-cp ./src_original/analyser.cc  ./src_original/file.cc  ./src_original/kmersConversion.cc ./.dCuCLARK/
-cp ./src_modified_and_new/*.hh ./.dCuCLARK/
-cp ./src_modified_and_new/main.cc ./.dCuCLARK/
-cp ./src_modified_and_new/CuClarkDB.* ./.dCuCLARK/
-
-if [ $NB -eq 1 ]; then
-	# OPENMP is likely supported
-	# Building CuCLARK
-	nvcc -Xcompiler -fopenmp -arch=sm_30 -o ./.dCuCLARK/CuCLARK -O3 ./.dCuCLARK/*.cc ./.dCuCLARK/*.cu
-
-    cp ./src_modified_and_new/parameters_light_hh ./.dCuCLARK/parameters.hh
-	# Building CuCLARK-l (light version)       
-	nvcc -Xcompiler -fopenmp -arch=sm_30 -o ./.dCuCLARK/CuCLARK-l -O3 ./.dCuCLARK/*.cc ./.dCuCLARK/*.cu
-else
-	# Building CuCLARK
-	nvcc -o ./.dCuCLARK/CuCLARK -O3 ./.dCuCLARK/*.cc ./.dCuCLARK/*.cu
-
-    cp ./src_modified_and_new/parameters_light_hh ./.dCuCLARK/parameters.hh
-    # Building CuCLARK-l (light version)
-	nvcc -o ./.dCuCLARK/CuCLARK-l -O3 ./.dCuCLARK/*.cc ./.dCuCLARK/*.cu
-fi
-mv ./.dCuCLARK/CuCLARK ./exe/
-mv ./.dCuCLARK/CuCLARK-l ./exe/
-rm -Rf ./.dCuCLARK .tmp
+echo "Installing cuCLARK, cuCLARK-l and programs for target definition in folder ./exe/"
+echo ""
+make

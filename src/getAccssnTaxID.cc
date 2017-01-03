@@ -16,7 +16,7 @@
    You should have received a copy of the GNU General Public License
    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-   Copyright 2013-2015, Rachid Ounit <rouni001@cs.ucr.edu>
+   Copyright 2013-2016, Rachid Ounit <rouni001@cs.ucr.edu>
  */
 
 /*
@@ -39,20 +39,26 @@ using namespace std;
 struct seqData
 {
 	std::string 	Name;
-	uint64_t	GI;
-	seqData():Name(""),GI(0)
+	std::string	Accss; 
+	seqData():Name(""),Accss("")
 	{}
 };
 
 int main(int argc, char** argv)
 {
-	if (argc != 3)
+	if (argc != 4)
 	{
-		cerr << "Usage: "<< argv[0] << " <./file of filenames> <./gi_taxid_nucl.dmp>"<< endl;
+		cerr << "Usage: "<< argv[0] << " <./file of filenames> <./nucl_accession2taxid> <./merged.dmp>"<< endl;
 		exit(-1);
 	}
-	FILE * giToTx = fopen(argv[2], "r");
-	if (giToTx == NULL)
+	FILE * oldTx = fopen(argv[3], "r");
+        if (oldTx == NULL)
+        {
+                cerr << "Failed to open " << argv[3] << endl;
+                exit(-1);
+        }
+	FILE * accToTx = fopen(argv[2], "r");
+	if (accToTx == NULL)
 	{
 		cerr << "Failed to open " << argv[2] << endl;
 		exit(-1);
@@ -65,16 +71,21 @@ int main(int argc, char** argv)
 	}
 	///////////////////////////////////
 	string line, file;
-	vector<string> ele;
-        vector<char> sep;
+	vector<string> ele, eles;
+        vector<char> sep, seps;
         sep.push_back('|');
+	sep.push_back('.');
+	sep.push_back('>');
+	seps.push_back(' ');
+	seps.push_back('\t');
+	seps.push_back(':');
 	vector<int> TaxIDs;
-	map<uint64_t,uint32_t>	 giToidx;
+	map<std::string,uint32_t> accToidx; 
 	vector<seqData> seqs;	
-	map<uint64_t,uint32_t>::iterator it;
-	uint32_t idx = 0;
-	uint64_t gi = 0;
-	cerr << "Loading GIs for all files... " ;
+	map<std::string,uint32_t>::iterator it;
+	uint32_t idx = 0, i_accss = 0;
+	string acc = "";
+	cerr << "Loading accession number of all files... " ;
 	while (getLineFromFile(meta_f, file))
 	{
 		FILE * fd = fopen(file.c_str(), "r");
@@ -87,55 +98,84 @@ int main(int argc, char** argv)
 		if (getLineFromFile(fd, line))
 		{
 			ele.clear();
-			getElementsFromLine(line, sep, ele);
-			if (ele.size() < 1 || ele[0] != ">gi")
+			getElementsFromLine(line, seps, ele);
+			if (line[0] != '>' || ele.size() < 1)
 			{
 				continue;
 			}
-			gi = atol(ele[1].c_str());
-			it = giToidx.find(gi);
-			if (it == giToidx.end())
+			eles.clear();
+			getElementsFromLine(ele[0], sep, eles);
+			
+			i_accss = eles.size()>1?eles.size()-2:0;
+			acc = eles[i_accss];
+			it = accToidx.find(acc);
+			
+			if (it == accToidx.end())
 			{	
 				TaxIDs.push_back(-1);
-				giToidx[gi] = idx++;
+				accToidx[acc] = idx++;
 			}
 			seqData s;
 			s.Name = file;
-			s.GI = gi;
+			s.Accss = acc;
 			seqs.push_back(s);
 		}
 		fclose(fd);
 	}
 	fclose(meta_f);
-	cerr << "done" << endl;
-	
+	cerr << "done ("<< accToidx.size() << ")" << endl;
+
+	string on_line;
+	sep.push_back(' ');
+	sep.push_back('\t');
+	std::map<int, int> 		oldTonew;
+	std::map<int, int>::iterator	it_on;
+
+	std::cerr << "Loading merged Tax ID... " ;
+	while (getLineFromFile(oldTx,on_line))
+	{
+		ele.clear();
+		getElementsFromLine(on_line, sep, ele);
+		it_on = oldTonew.find(atoi(ele[0].c_str()));
+		if (it_on == oldTonew.end())
+		{
+			oldTonew[atoi(ele[0].c_str())] = atoi(ele[1].c_str());
+		}
+	}	
+	fclose(oldTx);
+	std::cerr << "done" << std::endl;
+
 	string pair;
-	int taxID;
+	int taxID, new_taxID;
         vector<char> sepg;
         sepg.push_back(' ');
         sepg.push_back('\t');
 	uint32_t cpt = 0, cpt_u = 0;
         cerr << "Retrieving taxonomy ID for each file... " ;
         size_t taxidTofind = TaxIDs.size(), taxidFound = 0;
-	while (getLineFromFile(giToTx, pair) && taxidFound < taxidTofind)
+	while (getLineFromFile(accToTx, pair) && taxidFound < taxidTofind)
         {
                 ele.clear();
                 getElementsFromLine(pair, sepg, ele);
-                gi = atol(ele[0].c_str());
-		taxID = atoi(ele[1].c_str());
-                it = giToidx.find(gi);
-		if (it != giToidx.end())
+                acc = ele[0];
+		taxID = atoi(ele[2].c_str());
+                it = accToidx.find(acc);
+		if (it != accToidx.end())
 		{
 			taxidFound++;
-			TaxIDs[it->second] = taxID;
+			new_taxID = taxID;
+			it_on = oldTonew.find(taxID);
+			if (it_on != oldTonew.end())
+			{	new_taxID = it_on->second;	}
+			TaxIDs[it->second] = new_taxID;
 		}
         }
-        fclose(giToTx);
+        fclose(accToTx);
 	for(size_t t = 0; t < seqs.size(); t++)
 	{
 		cout << seqs[t].Name << "\t" ;
-		it = giToidx.find(seqs[t].GI);
-		cout << seqs[t].GI << "\t" << TaxIDs[it->second] << endl;
+		it = accToidx.find(seqs[t].Accss);
+		cout << seqs[t].Accss << "\t" << TaxIDs[it->second] << endl;
 		if (TaxIDs[it->second]  == -1)
 		{	cpt_u++; }
 		else
@@ -143,7 +183,7 @@ int main(int argc, char** argv)
 	}
 	cerr << "done (" << cpt << " files were successfully mapped";
 	if (cpt_u > 0)
-		cerr <<  ", "<< cpt_u << " files were unidentified" ;
+	{	cerr <<  ", and "<< cpt_u << " unidentified";	}
 	cerr << ")." << endl;
 	return 0;
 }

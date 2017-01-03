@@ -86,7 +86,7 @@ class CuClarkDB
 		std::vector<CONTAINER*>	d_readsInContainers;
 		
 		std::vector<std::vector<RESULTS*> >	d_results;	
-		std::vector<RESULTS*>				d_resultsFinal;
+		RESULTS*				d_resultsFinal;
 		
 		// events
 		std::vector<cudaEvent_t> m_batchFinishedEvents;

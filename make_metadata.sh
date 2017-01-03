@@ -17,7 +17,7 @@
 #   You should have received a copy of the GNU General Public License
 #   along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
-#   Copyright 2013-2015, Rachid Ounit <rouni001@cs.ucr.edu>
+#   Copyright 2013-2016, Rachid Ounit <rouni001@cs.ucr.edu>
 #   make_metadata.sh: To create meta-data for the selected database (Bacteria,
 # 		      Viruses, Human or Custom). 
 #
@@ -39,7 +39,7 @@ if [ ! -d $DBDR ]; then
 	mkdir -m 775 $DBDR/Custom
 
 	if [ ! -d $DBDR ]; then
-		echo "Failed to find the directory (please check the name of directory $DBDR and whether it exists). The program will abort."
+		echo "Failed to find the directory (please check the name of directory $DBDR: Does it exist?). The program will abort."
 		exit
 	fi
 else
@@ -63,16 +63,6 @@ if [ ! -f $DBDR/.taxondata ]; then
         fi
 fi 
 
-if [ "$DB" != "custom" ] && [ "$DB" != "bacteria" ] &&  [ "$DB" != "viruses" ] && [ "$DB" != "human" ]; then
-	echo "Failed to recognize the database: '$DB'. "
-	echo "-> Supported databases are 'bacteria', 'viruses' and 'human' from NCBI (Please check any typo)."
-	echo "-> Eventually, the program can build a database from your own sequences (*.fna files) in your disk. "
-	echo "If you want CLARK to use a customized database then please do the following directions: "
-	echo "1) Move your sequences (each fasta file defined with a GI number) to $DBDR/Custom/"
-	echo "2) Run again this command with the option 'custom' "
-	exit
-fi
-
 if [ ! -d $DBDR ]; then
 	echo "The directory $DBDR does not exit. The program will create it."
 	mkdir -m 775 $DBDR
@@ -89,14 +79,17 @@ if [ ! -s $DBDR/.$DB ]; then
 		ls $DBDR/Custom/ > $DBDR/.$DB
 		if [ ! -s $DBDR/.$DB ]; then
 			echo "The database directory 'Custom' is empty."
+		        echo "If you want CLARK to use a customized database then please do the following directions: "
+		        echo "1) Move your sequences in fasta format with the Accession number to $DBDR/Custom/"
+		        echo "2) Run again this command with the option 'custom' "
 			exit
 		fi
 		find $DBDR/Custom/ -name '*.f*' > $DBDR/.$DB
 	fi
 fi
 
-if [ ! -f ./exe/getfilesToTaxNodes ] || [ ! -f ./exe/getGInTaxID ]; then
-	echo "Something wrong occured (source code may be missing or unusable). The program must abort"
+if [ ! -f ./exe/getfilesToTaxNodes ] || [ ! -f ./exe/getAccssnTaxID ]; then
+	echo "Something wrong occurred (source code may be missing or unusable. Did the installation finish properly?). The program must abort."
 	exit
 fi
 
@@ -107,22 +100,26 @@ if [ ! -s $DBDR/.$DB ]; then
 fi
 
 if [ $DB = "human" ]; then
-	
-	if [ ! -s $DBDR/.$DB.fileToTaxIDs ]; then
-		for file in `cat $DBDR/.$DB`
+	cd $DBDR
+	if [ ! -s .$DB ]; then
+		ls ./Human/*.* > .$DB
+	fi
+	if [ ! -s .$DB.fileToTaxIDs ]; then
+		for file in `cat .$DB`
 		do
-		echo "$file 9606 9605 9604 9443 40674 7711" >> $DBDR/.$DB.fileToTaxIDs
+		echo "$file X 9606 9605 9604 9443 40674 7711" >> .$DB.fileToTaxIDs
 		done
 	fi
 	exit
 fi
 
-if [ ! -s $DBDR/.$DB.fileToGInTaxID ] ; then
-	./exe/getGInTaxID $DBDR/.$DB $DBDR/$TAXDR/gi_taxid_nucl.dmp > $DBDR/.$DB.fileToGInTaxID
+if [ ! -s $DBDR/.$DB.fileToAccssnTaxID ] ; then
+	echo "Re-building $DB.fileToAccssnTaxID"
+	./exe/getAccssnTaxID $DBDR/.$DB $DBDR/$TAXDR/nucl_accss $DBDR/$TAXDR/merged.dmp > $DBDR/.$DB.fileToAccssnTaxID
 fi
 if [ ! -s $DBDR/.$DB.fileToTaxIDs ]; then
 	echo "$DB: Retrieving taxonomy nodes for each sequence based on taxon ID..."
-	./exe/getfilesToTaxNodes $DBDR/$TAXDR/nodes.dmp $DBDR/.$DB.fileToGInTaxID > $DBDR/.$DB.fileToTaxIDs
+	./exe/getfilesToTaxNodes $DBDR/$TAXDR/nodes.dmp $DBDR/.$DB.fileToAccssnTaxID > $DBDR/.$DB.fileToTaxIDs
 fi
 exit
 

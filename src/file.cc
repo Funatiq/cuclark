@@ -16,7 +16,7 @@
    You should have received a copy of the GNU General Public License
    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-   Copyright 2013-2015, Rachid Ounit <rouni001@cs.ucr.edu>
+   Copyright 2013-2016, Rachid Ounit <rouni001@cs.ucr.edu>
  */
 
 /*
@@ -30,6 +30,7 @@
 #include <string>
 #include <vector>
 #include <string.h>
+#include <fstream>
 
 using namespace std;
 
@@ -42,11 +43,11 @@ void getElementsFromLine(char*& line, const size_t& len, const int _maxElement, 
 	_elements.resize(0);
 	while (t < len && cpt < _maxElement)
 	{
-		while ( t < len  && (line[t] == ' ' || line[t] == '\t' || line[t] == '\n' ))
+		while ( t < len  && (line[t] == ' ' || line[t] == '\t' || line[t] == '\n' || line[t] == '\r'))
 		{       t++;
 		}
 		string v = "";
-		while ( t < len && line[t] != ' '  && line[t] != '\t' && line[t] != '\n' )
+		while ( t < len && line[t] != ' '  && line[t] != '\t' && line[t] != '\n' && line[t] != '\r')
 		{
 			v.push_back(line[t]);
 			t++;
@@ -67,11 +68,11 @@ void getElementsFromLine(const std::string& line, const size_t& _maxElement, std
 	_elements.resize(0);
 	while (t < len && cpt < _maxElement)
 	{
-		while (t <  len && (line[t] == ' ' || line[t] == ',' || line[t] == '\n' || line[t] == '\t' ))
+		while (t <  len && (line[t] == ' ' || line[t] == ',' || line[t] == '\n' || line[t] == '\t' || line[t] == '\r'))
 		{       t++;
 		}
 		string v = "";
-		while (t <  len && line[t] != ' '  && line[t] != ',' && line[t] != '\n' && line[t] != '\t' )
+		while (t <  len && line[t] != ' '  && line[t] != ',' && line[t] != '\n' && line[t] != '\t' && line[t] != '\r')
 		{
 			v.push_back(line[t]);
 			t++;
@@ -116,7 +117,6 @@ void getElementsFromLine(const std::string& line, const vector<char>& _seps, std
 		}
 		if (v != "")
 		{_elements.push_back(v);}
-		//cpt++;
 	}
 	return;
 }
@@ -137,10 +137,7 @@ bool getLineFromFile(FILE*& _fileStream, string& _line)
 	}
 	else
 	{
-		//fclose(_fileStream);                       
 		_line = "";
-		free(line);
-		line = NULL;
 		return false;
 	}
 }
@@ -161,8 +158,6 @@ bool getFirstElementInLineFromFile(FILE*& _fileStream, string& _line)
 	else
 	{
 		_line = "";
-		free(line);
-		line = NULL;
 		return false;
 	}
 }
@@ -181,15 +176,10 @@ bool getFirstAndSecondElementInLine(FILE*& _fileStream, uint64_t& _kIndex, ITYPE
 		_kIndex = atoll(ele[0].c_str());
 		_index = atol(ele[1].c_str());
 		free(line);
-		line = NULL;
+                line = NULL;
 		return true;
 	}
-	else
-	{
-		free(line);
-		line = NULL;
-		return false;
-	}
+	return false;
 }
 
 bool getFirstAndSecondElementInLine(FILE*& _fileStream, std::string& _line, ITYPE& _freq)
@@ -205,14 +195,89 @@ bool getFirstAndSecondElementInLine(FILE*& _fileStream, std::string& _line, ITYP
 		_line = ele[0];
 		_freq = atoi(ele[1].c_str());
 		free(line);
-		line = NULL;
+                line = NULL;
 		return true;
 	}
-	else
-	{
-		free(line);
-		line = NULL;
-		return false;
-	}
+	return false;
 }
 
+
+void mergePairedFiles(const char* _file1, const char* _file2, const char* _objFile)
+{
+        string line1, line2 = "";
+        vector<string> ele1;
+        vector<string> ele2;
+        vector<char> sep;
+        sep.push_back(' ');
+        sep.push_back('/');
+        sep.push_back('\t');
+        FILE * fd1 = fopen(_file1, "r");
+        FILE * fd2 = fopen(_file2, "r");
+        getLineFromFile(fd1, line1);
+        getLineFromFile(fd2, line2);
+        if (line1[0] != line2[0])
+        {
+                perror("Error: the files have different format!");
+                exit(1);
+        }
+        char delim = line1[0];
+        if (delim != '@')
+        {
+                perror("Error: paired-end reads must be FASTQ files!");
+                exit(1);
+        }
+        sep.push_back(delim);
+        rewind(fd1);
+        rewind(fd2);
+        ofstream fout(_objFile, std::ios::binary);
+        while(getLineFromFile(fd1, line1) && getLineFromFile(fd2, line2))
+        {
+                if (line1[0] == delim && line2[0] == delim)
+                {
+                        ele1.clear();
+                        ele2.clear();
+                        getElementsFromLine(line1, sep, ele1);
+                        getElementsFromLine(line2, sep, ele2);
+                        if (ele1[0] != ele2[0])
+                        {
+                                perror("Error: read id does not match between files!");
+                                exit(1);
+                        }
+                        fout << ">" << ele1[0] << endl;
+                        if (getLineFromFile(fd1, line1) && getLineFromFile(fd2, line2))
+                        {
+                                // Add "N" to concatenate sequences, and separate content of each sequence
+                                fout << line1 << "N" << line2 << endl;
+                                if (getLineFromFile(fd1, line1) && getLineFromFile(fd2, line2))
+                                {
+                                        if (getLineFromFile(fd1, line1) && getLineFromFile(fd2, line2))
+                                        {       continue;       }
+                                }
+                        }
+                        else
+                        {
+                                perror("Error: Found read without sequence");
+                                exit(1);
+                        }
+                        continue;
+                }
+        }
+        fclose(fd1);
+        fclose(fd2);
+        fout.close();
+}
+
+void deleteFile(const char* _filename)
+{
+        if (_filename != NULL)
+                remove(_filename);
+}
+
+bool validFile(const char* _file)
+{
+        FILE * fd = fopen(_file, "r");
+        if (fd == NULL)
+        {       return false;   }
+        fclose(fd);
+        return true;
+}

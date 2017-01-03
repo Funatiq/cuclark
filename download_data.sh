@@ -1,8 +1,12 @@
 #!/bin/sh
 
-# 
-#   CLARK, CLAssifier based on Reduced K-mers.
-# 
+#
+#   cuCLARK, CLARK for CUDA-enabled GPUs.
+#   Copyright 2016-2017, Robin Kobus <rkobus@students.uni-mainz.de>
+#   
+#   based on CLARK version 1.1.3, CLAssifier based on Reduced K-mers.
+#   Copyright 2013-2016, Rachid Ounit <rouni001@cs.ucr.edu>
+#
 #
 #   This program is free software: you can redistribute it and/or modify
 #   it under the terms of the GNU General Public License as published by
@@ -17,7 +21,6 @@
 #   You should have received a copy of the GNU General Public License
 #   along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
-#   Copyright 2013-2016, Rachid Ounit <rouni001@cs.ucr.edu>
 #   download_data.sh: To download genomes from NCBI site (for Bacteria, 
 #		      Viruses, and Human).
 
@@ -33,13 +36,8 @@ if [ ! -s $1/.bacteria ]; then
 	mkdir -m 775 $1/Bacteria
 	cd $1/Bacteria/
 	echo "Downloading now Bacteria genomes:"
-	wget ftp://ftp.ncbi.nih.gov/genomes/Bacteria/all.fna.tar.gz
-	if [ -s all.fna.tar.gz ]; then
-        echo "Downloading done. Uncompressing files... "
-        else
-        wget ftp://ftp.ncbi.nih.gov/genomes/archive/old_refseq/Bacteria/all.fna.tar.gz
+       	wget ftp://ftp.ncbi.nih.gov/genomes/archive/old_refseq/Bacteria/all.fna.tar.gz
 	echo "Downloading done. Uncompressing files... "
-	fi
 	tar -zxf all.fna.tar.gz
 	rm all.fna.tar.gz
 	find `pwd` -name '*.fna' > ../.bacteria
@@ -105,8 +103,9 @@ if [ ! -s $1/.human ]; then
 	wget ftp://ftp.ncbi.nih.gov/genomes/H_sapiens/CHR_Un/hs_ref_GRC*chrUn.fa.gz
 	echo "Downloading done. Uncompressing files... "
 	gunzip ./*fa.gz
-	cd ..
-	ls $1/Human/*.fa > .human
+
+	find `pwd` -name '*.fa' > ../.human
+	cd ../
 	if  [ ! -s .human ]; then
                 echo "Error: Failed to download human sequences. "
                 exit

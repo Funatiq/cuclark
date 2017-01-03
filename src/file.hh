@@ -16,7 +16,7 @@
    You should have received a copy of the GNU General Public License
    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-   Copyright 2013-2015, Rachid Ounit <rouni001@cs.ucr.edu>
+   Copyright 2013-2016, Rachid Ounit <rouni001@cs.ucr.edu>
  */
 
 /*
@@ -48,5 +48,11 @@ bool getFirstElementInLineFromFile(FILE*& _fileStream, std::string& _line);
 bool getFirstAndSecondElementInLine(FILE*& _fileStream, std::string& _line, ITYPE& _freq);
 
 bool getFirstAndSecondElementInLine(FILE*& _fileStream, uint64_t& _kIndex, ITYPE& _index);
+
+void mergePairedFiles(const char* _file1, const char* _file2, const char* _objFile);
+
+void deleteFile(const char* _filename);
+
+bool validFile(const char* _file);
 
 #endif //FILE_HH

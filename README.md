@@ -2,7 +2,9 @@
 
 ABOUT
 -----
-CuCLARK is a metagenomic classifier for CUDA-enabled GPUs, based on CLARK (http://clark.cs.ucr.edu/).
+CuCLARK is a metagenomic classifier for CUDA-enabled GPUs, based on CLARK (http://clark.cs.ucr.edu/).  
+For implementation details and speed comparison see the corresponding paper [Accelerating metagenomic read classification on CUDA-enabled GPUs](https://bmcbioinformatics.biomedcentral.com/articles/10.1186/s12859-016-1434-6). CuCLARK [v1.0](https://github.com/Funatiq/cuclark/releases/tag/v1.0) was used in the paper and has since been updated (see `CHANGELOG.md` for details).
+
 
 The program comes in two variants: CuCLARK and CuCLARK-l.
 CuCLARK is designed for workstations which can provide enough RAM to fit large databases 

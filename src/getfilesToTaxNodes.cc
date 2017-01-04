@@ -16,7 +16,7 @@
    You should have received a copy of the GNU General Public License
    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-   Copyright 2013-2015, Rachid Ounit <rouni001@cs.ucr.edu>
+   Copyright 2013-2016, Rachid Ounit <rouni001@cs.ucr.edu>
  */
 
 /*
@@ -112,7 +112,7 @@ int main(int argc, char** argv)
 		idp = atoi(ele[1].c_str());
 		nodes[id].parent = idp;
 		it = nameTorank.find(ele[2].c_str());
-		if (it != nameTorank.end())
+		if (it != nameTorank.end() && (ele.size()==3 || ele[3].find("group") == std::string::npos))
 		{	nodes[id].rank = it->second; }
 	}
 	fclose(fdn);

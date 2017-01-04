@@ -135,11 +135,17 @@ class CuCLARK
 				const ITYPE& 		_minCountO 	= 0
 			      );
 
-		void run(const char*			_filesToObjects,
-				const char* 		_fileToResults,
-				const ITYPE& 		_minCountO 	= 0,
-				const bool&		_isExtended	= false,
-				const bool&		_isPaired	= false
+		void run(const char*	_filesToObjects,
+				const char* 	_fileToResults,
+				const ITYPE& 	_minCountO 	= 0,
+				const bool&		_isExtended	= false
+			);
+
+		void run(const char*	_pairedfile1,
+				const char*		_pairedfile2,
+				const char*		_fileToResults,
+				const ITYPE&	_minCountO  = 0,
+				const bool&		_isExtended = false
 			);
 
 		void clear();
@@ -375,13 +381,13 @@ void CuCLARK<HKMERr>::createTargetFilesNames(vector<string>& _filesHT, vector<st
  * Check files and set up to run classification.
  */
 template <typename HKMERr>
-void CuCLARK<HKMERr>::run(const char* _filesToObjects, const char* _fileToResults, const ITYPE& _minCountO, const bool& _isExtended, const bool& _isPaired)
+void CuCLARK<HKMERr>::run(const char* _filesToObjects, const char* _fileToResults, const ITYPE& _minCountO, const bool& _isExtended)
 {
 	FILE* fd = fopen(_fileToResults, "r");
+	m_isPaired = false;
 	m_isExtended = _isExtended;
 	if (fd == NULL )
 	{
-		m_isPaired = _isPaired;
 		cout << "Processing file \'" << _filesToObjects << "\' in " << m_numBatches << " batches using "<< m_nbCPU << " CPU thread(s)." <<  endl;
 		CuCLARK::runSimple(_filesToObjects, _fileToResults, _minCountO);
 		return;
@@ -402,7 +408,6 @@ void CuCLARK<HKMERr>::run(const char* _filesToObjects, const char* _fileToResult
 
 	if (line[0] == '>' || line[0] == '@' || ele.size() == 2)
 	{
-		m_isPaired = _isPaired;
 		cout << "Processing file\'" << _filesToObjects << "\' in " << m_numBatches << " batches using "<< m_nbCPU << " CPU thread(s)." <<  endl;
 		CuCLARK::runSimple(_filesToObjects, _fileToResults, _minCountO);
 		return;
@@ -420,6 +425,84 @@ void CuCLARK<HKMERr>::run(const char* _filesToObjects, const char* _fileToResult
 	}
 	fclose(r_fd); 
 	fclose(o_fd);
+	return;
+}
+
+/**
+ * Check files and set up to run classification (paired version).
+ */
+template <typename HKMERr>
+void CuCLARK<HKMERr>::run(const char* _pairedfile1, const char* _pairedfile2, const char* _fileToResults, const ITYPE& _minCountO, const bool& _isExtended)
+{
+	FILE* fd 	= fopen(_fileToResults, "r");
+	m_isPaired 	= true;
+	m_isExtended 	= _isExtended;
+	char * mergedFiles = NULL;
+	if (fd == NULL )
+	{
+		// Merge _pairedfile1 + _pairedfile2
+		mergedFiles = (char *) calloc(strlen(_pairedfile1)+25, 1);
+		sprintf(mergedFiles,"%s_ConcatenatedByCLARK.fa",_pairedfile1);
+		mergePairedFiles(_pairedfile1, _pairedfile2, mergedFiles);
+		cout << "Processing file: \'" << mergedFiles << "\' in " << m_numBatches << " batches using "<< m_nbCPU << " CPU thread(s)." <<  endl;
+		CuCLARK::runSimple(mergedFiles, _fileToResults, _minCountO);
+		// Delete file
+		deleteFile(mergedFiles);
+		free(mergedFiles);
+		mergedFiles = NULL;
+		return;
+	}
+	fclose(fd);
+
+	fd = fopen(_pairedfile1, "r");
+	string line 	= "";
+	getLineFromFile(fd, line);
+	vector<string> ele;
+	vector<char> seps;
+	seps.push_back(' ');
+	seps.push_back('\t');
+	seps.push_back(',');
+	fclose(fd);
+
+	getElementsFromLine(line, seps, ele);
+	if (line[0] == '>' || line[0] == '@' || ele.size() == 2)
+	{
+		// Merge _pairedfile1 + _pairedfile2 
+		mergedFiles = (char *) calloc(strlen(_pairedfile1)+25, 1);
+		sprintf(mergedFiles,"%s_ConcatenatedByCLARK.fa",_pairedfile1);
+		mergePairedFiles(_pairedfile1, _pairedfile2, mergedFiles);
+		cout << "Processing file: \'" << mergedFiles << "\' in " << m_numBatches << " batches using "<< m_nbCPU << " CPU thread(s)." <<  endl;
+		CuCLARK::runSimple(mergedFiles, _fileToResults, _minCountO);
+		// Delete file
+		deleteFile(mergedFiles);
+		free(mergedFiles);
+		mergedFiles = NULL;
+		return;
+	}
+	
+	// run for multiple inputs
+	FILE * r_fd 	= fopen(_fileToResults, "r");
+	FILE * o1_fd 	= fopen(_pairedfile1, "r");
+	FILE * o2_fd 	= fopen(_pairedfile2, "r");
+	string o1_line 	= "", o2_line   = "", r_line = "";
+	cout <<  "Using " << omp_get_max_threads() << " CPU thread(s)." <<  endl;
+	while (getLineFromFile(o1_fd, o1_line) && getLineFromFile(o2_fd, o2_line) && getLineFromFile(r_fd, r_line))
+	{
+		// Merge _pairedfile1 + _pairedfile2 
+		mergedFiles = (char *) calloc(strlen(o1_line.c_str())+25, 1);
+		sprintf(mergedFiles,"%s_ConcatenatedByCLARK.fa",o1_line.c_str());
+		mergePairedFiles(o1_line.c_str(), o2_line.c_str(), mergedFiles);
+
+		cout << "> Processing file: \'" << mergedFiles << "\' in " << m_numBatches << " batches."<< endl;
+		CuCLARK::runSimple(mergedFiles, r_line.c_str(), _minCountO);
+		// Delete file
+		deleteFile(mergedFiles);
+		free(mergedFiles);
+		mergedFiles = NULL;
+	}
+	fclose(r_fd);
+	fclose(o1_fd);
+	fclose(o2_fd);
 	return;
 }
 
@@ -536,17 +619,20 @@ void CuCLARK<HKMERr>::loadSpecificTargetSets(const vector<string>& _filesHT,
 
 	cerr << "Loading database [" << cfname << ".*] (s=" << _samplingFactor<< ")..." << endl;
 
-	//~ struct timeval requestStart, requestEnd;
 	size_t fileSize;
 	
-	//~ gettimeofday(&requestStart, NULL);
+#ifdef TIME_DBLOADING
+	struct timeval requestStart, requestEnd;
+	gettimeofday(&requestStart, NULL);
+#endif
 ////	if (m_centralHt->Read(cfname, fileSize, m_nbCPU, _samplingFactor, _mmapLoading))
 	if (m_cuClarkDb->read(cfname, fileSize, m_dbParts, _samplingFactor, _mmapLoading))
 	{
-		//~ gettimeofday(&requestEnd, NULL);
-		//~ double diff = (requestEnd.tv_sec - requestStart.tv_sec) + (requestEnd.tv_usec - requestStart.tv_usec) / 1000000.0;
-		//~ cerr << "Loading time: " << diff << " s\n";
-
+#ifdef TIME_DBLOADING
+		gettimeofday(&requestEnd, NULL);
+		double diff = (requestEnd.tv_sec - requestStart.tv_sec) + (requestEnd.tv_usec - requestStart.tv_usec) / 1000000.0;
+		cerr << "Loading time: " << diff << " s\n";
+#endif
 		//~ cerr << "Loading done (database size: " << fileSize / 1000000<<" MB)" << endl;
 		free(cfname);
 		cfname = NULL;
@@ -1486,9 +1572,11 @@ void CuCLARK<HKMERr>::getObjectsDataComputeFullGPU(const uint8_t * _map,  const 
 		}	
 		avgReadLength = avgReadLength/m_readsLength[i].size() +1;
 		size_t numContainer = avgReadLength/(sizeof(CONTAINER)*4)+3;
-		//~ cerr << "Batch " << i << ": AVG read length " << avgReadLength
-			//~ << ", Estimated # containers per read: " << numContainer << "\n";
-		
+#ifdef DEBUG_BATCH
+		cerr << "Batch " << i << ": AVG read length " << avgReadLength
+			<< ", Estimated # containers per read: " << numContainer << "\n";
+#endif			
+
 		if(numContainer > numContainerMax)
 		{
 #ifdef _OPENMP
@@ -1498,8 +1586,9 @@ void CuCLARK<HKMERr>::getObjectsDataComputeFullGPU(const uint8_t * _map,  const 
 				numContainerMax = numContainer;
 		}
 	}
-	
-	//~ cerr << "Estimated # containers per read: " << numContainerMax << "\n";
+#ifdef DEBUG_BATCH
+	cerr << "Estimated # containers per read: " << numContainerMax << "\n";
+#endif			
 	
 	// compact results
 	// need to store index and counter for each target hit, also sum
@@ -1523,7 +1612,6 @@ void CuCLARK<HKMERr>::getObjectsDataComputeFullGPU(const uint8_t * _map,  const 
 										m_isExtended,
 										readsPointer,
 										readsInContainers);
-	cerr << "Allocated memory for batch data: " << total/1000/1000.0<< " MB\n";
 	
 #ifdef _OPENMP
 	#pragma omp parallel
@@ -1636,21 +1724,21 @@ void CuCLARK<HKMERr>::getObjectsDataComputeFullGPU(const uint8_t * _map,  const 
 			myReadsPointer[m_readsLength[i_r].size()] = containerCount;
 			
 			float numContainerActual = (float)containerCount/m_readsLength[i_r].size();			
-
-			//~ cerr << "Batch " << i_r << "\t # Containers: " << containerCount
-				 //~ << " (AVG # per read: " << numContainerActual << ").\n";
-				 
+#ifdef DEBUG_BATCH
+			cerr << "Batch " << i_r << "\t # Containers: " << containerCount
+				 << " (AVG # per read: " << numContainerActual << ").\n";
+#endif			 
 			if (numContainerActual > numContainerMax)
 			{
 				cerr << "Bad container estimation. Abort." << endl;
 				exit(-1);
 			}		
-			
-			//~ cerr 	<< "Host " << omp_get_thread_num()
-					//~ << " Batch " << i_r << "\t CUDA start.\t"
-					//~ << "Read data size: " << readsInContainers.size()*sizeof(CONTAINER) /1000 /1000.0 << " MB\t"
-					//~ << "Result data size: " << m_finalResultsRowSize*m_readsLength[i_r].size() /1000 /1000.0 << " MB\n";
-				
+#ifdef DEBUG_BATCH
+			cerr 	<< "Host " << omp_get_thread_num()
+					<< " Batch " << i_r << "\t CUDA start.\t"
+					<< "Read data size: " << readsInContainers.size()*sizeof(CONTAINER) /1000 /1000.0 << " MB\t"
+					<< "Result data size: " << m_finalResultsRowSize*m_readsLength[i_r].size() /1000 /1000.0 << " MB\n";
+#endif				
 			// pass batch parameters to m_cuClarkDb			
 			m_cuClarkDb->readyBatch(i_r, m_readsLength[i_r].size(), containerCount);
 
@@ -1662,12 +1750,14 @@ void CuCLARK<HKMERr>::getObjectsDataComputeFullGPU(const uint8_t * _map,  const 
 			{
 				m_batchScheduled[i_r] = m_cuClarkDb->queryBatch( i_r, m_isExtended);
 				
+#ifdef DEBUG_BATCH
 				// print batch information
-				//~ size_t batchSize = (m_readsLength[i_r].size()+1)*sizeof(uint32_t) + containerCount*sizeof(CONTAINER);
-				//~ cerr << "Batch " << i_r << " scheduled." 
-						  //~ << " Objects: " << m_readsLength[i_r].size()
-						  //~ << " Size: " << batchSize/1000/1000.0 << " MB"
-						  //~ << endl;
+				size_t batchSize = (m_readsLength[i_r].size()+1)*sizeof(uint32_t) + containerCount*sizeof(CONTAINER);
+				cerr << "Batch " << i_r << " scheduled." 
+						  << " Objects: " << m_readsLength[i_r].size()
+						  << " Size: " << batchSize/1000/1000.0 << " MB"
+						  << endl;
+#endif
 			}
 					
 			// start printing results early if possible

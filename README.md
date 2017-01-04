@@ -1,6 +1,10 @@
+# CuCLARK
+
 ABOUT
 -----
-CuCLARK is a metagenomic classifier for CUDA-enabled GPUs, based on CLARK (http://clark.cs.ucr.edu/).
+CuCLARK is a metagenomic classifier for CUDA-enabled GPUs, based on CLARK (http://clark.cs.ucr.edu/).  
+For implementation details and speed comparison see the corresponding paper [Accelerating metagenomic read classification on CUDA-enabled GPUs](https://bmcbioinformatics.biomedcentral.com/articles/10.1186/s12859-016-1434-6). CuCLARK [v1.0](https://github.com/Funatiq/cuclark/releases/tag/v1.0) was used in the paper and has since been updated (see `CHANGELOG.md` for details).
+
 
 The program comes in two variants: CuCLARK and CuCLARK-l.
 CuCLARK is designed for workstations which can provide enough RAM to fit large databases 
@@ -78,7 +82,7 @@ details on these scripts.
 
 SOFTWARE & SYSTEM REQUIREMENTS
 -----
-1) C++ COMPILER VERSION       
+1) C++ COMPILER VERSION
 The main requirement is a 64-bit operating system (Linux or Mac), and the GNU GCC to
 compile version 4.4 or higher. Multi-threading operations are assured by the openmp
 libraries. If these libraries are not installed, CuCLARK will run in single-threaded
@@ -113,12 +117,29 @@ INSTALLATION
 Copy the whole "CuCLARK" folder to hard disk and execute the installation script (`./install.sh`).
 The installer builds binaries (CuCLARK and CuCLARK-l, in the subfolder "exe").
 
+SCRIPTS
+-----
 In the main folder, you can also notice that several scripts are available.
 Especially:
 - `set_targets.sh` and `classify_metagenome.sh`: They allow you to classify your metagenomes
 against several database(s) (downloaded from NCBI or available "locally" in your disk).
 See section "CLASSIFICATION OF METAGENOMIC SAMPLES" for details.
+
 - `download_data.sh`, `download_taxondata.sh` and `make_metadata.sh` are called by `set_targets.sh` to download a specific database and taxonomy tree data from NCBI, and to associate the genomes of the database with the corresponding taxons, respectively. Although it is possible to use these scripts on their own, we recommend to simply use `set_targets.sh` to carry out all necessery steps.
+
+- `download_data.sh` downloads bacteria, viruses or human genomes from NCBI like the original CLARK.
+
+- `download_data.sh` can be replaced with `download_data_newest.sh` or `download_data_release.sh`
+to download the newest NCBI RefSeq genomes or the genomes of the latest NCBI RefSeq release. These scripts allow to download any database included in RefSeq like archaea, bacteria, fungi, etc..
+
+- `clean.sh`: This script will delete permanently all data related (generated and 
+downloaded) of the database directory defined in set_targets.h.
+
+- `resetCustomDB.sh`: It resets the targets definition with sequences (newly 
+added/modified) of the customized database. Any call of this script must be 
+followed by a run of set_target.sh.
+
+- `updateTaxonomy.sh`: To download the latest taxonomy data (taxonomy id, accession numbers, etc.) from the NCBI website.
 
 
 
@@ -137,7 +158,7 @@ Definitions of parameters:
 `-k <kmerSize>`,       	 	k-mer length:	integer, >= 2 and <= 32. 
 			 	The default value for this parameter is 31, except for CuCLARK-l (it is 27).
 
-`-T <fileTargets>`,    	 	The targets definition is written in fileTargets: filename.  
+`-T <fileTargets>`,    	 	The targets definition is written in fileTargets: filename.
 				This is a two-column file (separated by space, comma or tab), such that, for each line:
 				column 1: the filename of a reference sequence
 				column 2: the target ID (taxon name, or taxonomy ID, ...) of the reference sequence 
@@ -148,15 +169,15 @@ Definitions of parameters:
 				The default value is 0. For example, for 1 (or, 2), the program will discard any 
 				discriminative k-mer that appears only once (or, less than twice).
 
-`-D <directoryDB/>`,   	 	Directory of the database : pathname.  
+`-D <directoryDB/>`,   	 	Directory of the database : pathname.
 				This parameter is mandatory.
 
-`-O <fileObjects>`,    	 	file containing objects: filename.  
+`-O <fileObjects>`,    	 	file containing objects: filename.
 				This parameter is mandatory.
 
 `-P <file1> <file2>`,		Paired-end fastq files: filenames.
 
-`-R <fileResults>`,    	 	file to store results:  filename.  
+`-R <fileResults>`,    	 	file to store results:  filename.
 				Results are stored in CSV format in the file <fileResults>.csv (the extension 
 				".csv" is automatically added to the filename).
 				This parameter is mandatory. 
@@ -223,8 +244,9 @@ To work with bacteria, viruses and human:
 `$ ./set_targets.sh <DIR_DB/> bacteria viruses human`
 
 To classify against a custom database:
-The user will need to paste its sequences (fasta files with GI number in header, and 
-one fasta file per reference sequence) in the directory "Custom", inside `<DIR_DB/>`. 
+The user will need to paste its sequences (fasta files with accession numbers in the 
+header, i.e., ">accession.number ..." or ">gi|number|ref|accession.number| ...", 
+and one fasta file per reference sequence) in the directory "Custom", inside `<DIR_DB/>`. 
 To do so, the user must (1) create the directory "Custom" inside  `<DIR_DB/>` (if it
 does not exist yet) (2) copy or move sequences of interest in Custom and (3) run:
 `$ ./set_targets.sh <DIR_DB/> custom`
@@ -278,17 +300,28 @@ IMPORTANT NOTES:
  computed by `set_targets.sh`.
 
 - The script `set_targets.sh` assumes that each reference file from bacteria, viruses or custom
-database contains a GI number (in the RefSeq records format: ">gi|<number>|ref|<accession>|<text>"). 
+database contains an accession number (in the RefSeq records format: 
+i.e., ">accession.number ..." or ">gi|number|ref|accession.number| ..." ). 
 If a GI number is missing in a file, then this file will not be used for the classification. 
 
-- set_targets.sh also maps the GI number found in each reference sequence to its taxonomy ID
-based on the latest NCBI taxonomy data. If a mapping cannot be made for a given sequence, 
-then it will be counted and excluded from the targets definition.
+- `set_targets.sh` also maps the accession number found in each reference sequence to its
+taxonomy ID based on the latest NCBI taxonomy data. If a mapping cannot be made for a given sequence, 
+then it will NOT be counted and excluded from the targets definition.
 The total number of excluded files is prompted in the standard output, and all files that have
 been excluded are reported in the file "files_excluded.txt" (located in the the specified
 database directory (i.e., "./DBD/").
 If some files are excluded, then it will probably mean that they have been removed 
 for curations for example (visit the RefSeq FAQ webpage).
+
+- You can update your local taxonomy database thanks to the script `updateTaxonomy.sh`
+You can use this script before running `set_targets.sh`.
+
+- If the user wants to work with a different customized database (for example, by removing
+or adding more sequences of interest in the Custom folder) then the targets definition
+must be reset. We made it simple with the script `resetCustomDB.sh`: 
+After the sequences in the Custom folder have been updated, just run:
+`$ ./resetCustomDB.sh`
+Then, run `set_target.sh` with the desired settings.
 
 - The database files (*.ky, *.lb and *.sz) will be created inside some subdirectory of the 
 specified database directory in step I (i.e., "./DBD/") by `classify_metagenome.sh`.

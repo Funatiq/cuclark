@@ -16,7 +16,7 @@
    You should have received a copy of the GNU General Public License
    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-   Copyright 2013-2015, Rachid Ounit <rouni001@cs.ucr.edu>
+   Copyright 2013-2016, Rachid Ounit <rouni001@cs.ucr.edu>
  */
 
 /*
@@ -26,21 +26,30 @@
  *
  */
 
+#ifndef ANALYSER_HH
+#define ANALYSER_HH
 
-#ifndef PARAMETERS_HH
-#define PARAMETERS_HH
+/*
+ * Rachid Ounit
+ * Date: 07/12/2013
+ * 
+ */
 
-#define VERSION "1.1.3"
-#define YEARS "2013-2015"
+#include <vector>
 
-#define SB              4       
-#define LHTSIZE 	57777779
-#define HTSIZE  	1610612741
-#define NBN		1
-#define SFACTORMAX 	30
+class analyser
+{
+	private:
+		size_t				m_size;
+		std::vector< std::vector<int> > m_kmers;
+		std::vector<int> 		m_frequency;
 
-typedef uint64_t      T64;
-typedef uint32_t      T32;
-typedef uint16_t      T16;
+	public:
+		analyser(const char* _file);
+		~analyser();
+		bool getBumpInterval(int& _indexS, int& _indexE, const size_t& _div = 2);
+		
+};
+
 
 #endif

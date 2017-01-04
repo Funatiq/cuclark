@@ -1,7 +1,7 @@
 #!/bin/sh
 
 #
-#   CuCLARK, CLARK for CUDA-enabled GPUs.
+#   cuCLARK, CLARK for CUDA-enabled GPUs.
 #   Copyright 2016, Robin Kobus <rkobus@students.uni-mainz.de>
 #   
 #   based on CLARK version 1.1.3, CLAssifier based on Reduced K-mers.
@@ -27,7 +27,7 @@
 #			   or several databases from the list:
 #			   bacteria, viruses, human and custom.
 #
-#   Changes:
+#   Differences to CLARK:
 #   Deprecated some parameters and added new parameters.
 #
 
@@ -46,13 +46,13 @@ echo "-R <fileResults>,    \t file to store results (or corresponding list of re
 echo "-n <numberofthreads>,\t number of threads:\tinteger >= 1.\n"
 echo "-b <numberofbatches>,\t number of batches:\tinteger >= 1.\n";
 echo "-d <numberofdevices>,\t number of CUDA devices to use:\tinteger >= 1.\n";
-echo "-g <iteration>,      \t gap or number of non-overlapping k-mers to pass for the database creation (for CuCLARK-l only). The default value is 4.\n"
-echo "-s <factor>,         \t sampling factor value (for CuCLARK only). \n"
+echo "-g <iteration>,      \t gap or number of non-overlapping k-mers to pass for the database creation (for cuCLARK-l only). The default value is 4.\n"
+echo "-s <factor>,         \t sampling factor value (for cuCLARK only). \n"
 echo "--tsk,               \t to request a detailed creation of the database (target specific k-mers files).\n"
 #echo "--ldm,               \t to request the loading of the database by memory mapped-file (in multithreaded mode, multiple parallel threads are requested).\n"
 #echo "--kso,               \t to request a preliminary k-spectrum analysis of each object (for mode 3 only).\n"
 echo "--extended,	   \t to request an extended output for the results file.\n"
-echo "--light		   \t to run the RAM-light variant of CuCLARK, namely CuCLARK-l.\n"
+echo "--light		   \t to run the RAM-light variant of cuCLARK, namely cuCLARK-l.\n"
 echo "--gzipped            \t to indicate that objects are gzipped.\n"
 exit
 fi
@@ -153,9 +153,9 @@ exit
 fi
 
 if [ "$VARIANT" = "LIGHT" ]; then
-./exe/CuCLARK-l $PARAMS
+./exe/cuCLARK-l $PARAMS
 else
-./exe/CuCLARK $PARAMS
+./exe/cuCLARK $PARAMS
 fi
 
 if [ "$UNRQTD" = "--gzipped" ]; then

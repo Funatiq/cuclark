@@ -7,8 +7,6 @@ Riverside CA 92521
 2: Botany and Plant Sciences department, University of California, 
 Riverside CA 92521
 
-Project dates: 08/2013 to 03/2015.
-
 
 == ABOUT
 
@@ -25,32 +23,44 @@ problems, namely (1) the assignment of metagenomic reads to known bacterial
 genomes, and (2) the assignment of BAC clones and transcript to chromosome arms 
 (in the absence of a finished assembly for the reference genome). 
 
-Two variants of CLARK are provided, one for powerful workstation (as this default 
-variant may require a lot of RAM for large database such all bacterial genomes in 
-NCBI/RefSeq), and one for workstations with limited RAM (named "CLARK-l"). Indeed, 
-for metagenomics analysis, CLARK-l works with a sparse or ''light'' database to be 
-run on a 4 GB RAM laptop while still performing ultra accurate and fast results. 
+Three classifiers or variants from the CLARK framework are provided :
+CLARK (default): created for powerful workstation, it can require a significant 
+amount of RAM to run with large database (e.g., all bacterial genomes from 
+NCBI/RefSeq). This classifier queries k-mers with exact matching;
 
-== NOTE
+CLARK-l : created for workstations with limited memory (i.e., "l" for light), 
+this software tool provides precise classification on small metagenomes. Indeed,
+ for metagenomics analysis, CLARK-l works with a sparse or ''light'' database 
+(up to 4 GB of RAM) that is built using distant and non-overlapping k-mers.
+This classifier queries k-mers with exact matching;
+
+CLARK-S (new): created for powerful workstation exploiting spaced k-mers 
+(i.e., "S" for spaced), this classifier requires a higher RAM usage than 
+CLARK or CLARK-l, but it does offer a higher sensitivity.
+CLARK-S completes the CLARK series of classifiers.
+
+== GENERAL NOTE
 
 The performance of CLARK was introduced, as a poster presentation, at the 5th 
 ACM Conference on Bioinformatics, Computational Biology, and Health Informatics 
 (ACM-BCB), September 20-23, 2014 at Newport Beach, CA.
 
+CLARK-S was presented at the 14 Workshop on Algorithms in Bioinformatics, Atlanta,
+GA, September 2015.
+
 
 == LICENCE
 
-  The source code of CLARK is distributed under the GPL License. CLARK and its 
-variant (such as CLARK-l) are a free software: you can redistribute it and/or 
+The source code of CLARK is distributed under the GNU GPL License. CLARK and its 
+variants (such as CLARK-l) are a free software: you can redistribute it and/or 
 modify it under the terms of the GNU General Public License as published by the 
 Free Software Foundation, either version 3 of the License, or (at your option) 
 any later version. 
 CLARK and its variants are distributed in the hope that it will  be useful, but 
 WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or 
 FITNESS FOR A PARTICULAR PURPOSE. 
-See the GNU General Public License for more details at 
-http://www.gnu.org/licenses/ 
-Copyright 2013-2015, Rachid Ounit (rouni001 at ucr.edu).
+See the GNU General Public License for more details at http://www.gnu.org/licenses/ 
+Copyright 2013-2016, Rachid Ounit (rouni001 at cs.ucr.edu).
 
 
 == RELEASE
@@ -81,8 +91,28 @@ files (GZ format) directly to "classify_metagenome.sh". Finally, bugs fixes and
 code improvement are made.
   On 06/03/2015, the version 1.1.3 is available:
 This release extends existing features, simplifies output produced by the full mode
-(to reduce the disk spaced needed for the results file). Bugs fixed and 
+(to reduce the disk spaced needed for the results file). Bugs fixes and
 code improvement are included.
+  On 06/15/2015, the version 1.2.1-beta is available:
+This release contains the discriminative spaced k-mers (using multiple spaced-seed).
+This version is still in the beta version while features and code improvements on 
+the RAM usage are on-going. 
+Bug fixes and code improvement are included.
+  On 12/11/2015, the version 1.2.2-beta is available:
+The speed and RAM usage of the full and spaced mode are significantly improved:
+i) the RAM usage is now scalable and the upper-bound is lower than the maximum 
+usage needed in previous versions; 
+ii) the speed is increased by a factor of 5 to 9, in singlethreaded tasks. 
+To analyze results, a script to plot the distribution of the assignments per gamma
+score (as done with confidence score) is provided. 
+In addition, the option to create Krona-compatible input files 
+("http://www.biomedcentral.com/1471-2105/12/385") is available.
+  On 04/07/2016, the version 1.2.3 is available:
+The classifier CLARK-S is finalized. Scripts to generate the targets definition 
+using the accession number instead of the GI number have been updated. 
+Additional scripts have been added to facilitate the creation and changes 
+of the customized databases. Code improvements and bug fixes are included.
+
 
 This versatile method allows the classification of objects sequences against a 
 database of targets. Sequences of targets must be given by standard fasta and/or 
@@ -99,11 +129,12 @@ ATTTTT 234
 
 == COMPATIBILITY BETWEEN VERSIONS
 
-Between v1.1* and v1.0:
+Between v1.* and v1.0:
 The version 1.1 (or higher) does use a different algorithm when storing and loading 
 the database, compared to v1.0. Therefore, databases files (TSK files) produced by 
 the version 1.0 are not compatible with v1.1. This is why it is needed to rebuild 
-the database using v1.1*. When using v1.1*, three files are created for the database. 
+the database using v1.1 (or newer version). When using v1.1 (or newer), three files are 
+created for the database. 
 Discriminative k-mers and their targets ID are stored respectively in the files of 
 extension *.ky and *.lb. Sizes of all buckets of the hashtable are stored in the 
 file of extension *.sz.
@@ -122,42 +153,66 @@ task. CLARK is expected to successfully run on recent Mac and Linux OS.
 2) MEMORY
 CLARK can be RAM consuming, especially when loading large database(s). Latest versions
 since v1.1.1 require about 58 GB in RAM to load the database in default mode (built 
-from  bacteria genomes, NCBI/RefSeq) and about 149 GB to build that database, using 
-31-mers. Using 20-mers instead, it requires 49 GB to load the database (and 107 GB 
-to build the database). 
+from  bacteria genomes, default NCBI/RefSeq) and about 156 GB to build that database, 
+using 31-mers. Using 20-mers instead, it requires 49 GB to load the database 
+(and 107 GB to build the database). About CLARK-S, the memory usage during the 
+classification is the highest (~101 GB) because the program loads in memory several 
+sets of spaced k-mers (from several spaced seed).
+
 For the space required in disk, CLARK needs about 36 GB to store the database built 
 for bacteria (at the genus level).
 
 If memory is a concern to you and you have small metagenomes then please consider
- using the RAM-light version, CLARK-l. This variant is designed to run on 4 GB RAM 
-laptop. CLARK-l can load data from bacteria and viruses databases within 4 GB. 
+ using the RAM-light version, CLARK-l. This tool is designed to run on 4 GB RAM 
+laptop, thus the memory consumption is the main objective of this tool. 
+CLARK-l can load data from bacteria and viruses databases within 4 GB. 
 If it can't then the user should change the parameter value for the gap 
 (see "-g <iteraton>" option, in "MANUAL & OPTIONS") and set the iteration to a 
 value higher than the default, 4. 
-Run CLARK-l for small set of objects, so it can run with high speed.
+IMPORTANT NOTE: Results given by CLARK-l should be seen as a draft (or first order 
+approximation) of results you would get by running CLARK or CLARK-S.
 
 
 == INSTALLATION
 
-First, create a directory dedicated to store the source code, scripts and binaries for 
-CLARK. Let's name this directory in a generic way, namely <DIR_CLARK/>.
-Second, download in <DIR_CLARK/> the zipped package of the latest version (v1.1.3), 
-available from the CLARK webpage ("Download tab"), http://clark.cs.ucr.edu.
-Finally, using the console command from <DIR_CLARK/>, uncompress the tar.gz file 
-("tar -xvf CLARKV1.1.3.tar.gz"), then execute the installation script ("./install.sh"). 
-Done!
+First, download the zipped package of the latest version (v1.2.3), available from 
+the CLARK webpage ("Download tab"), http://clark.cs.ucr.edu.
+Second, uncompress the tar.gz file ("tar -xvf CLARKV1.2.3.tar.gz"), then go to 
+the sub-directory "CLARKSCV1.2.3" and execute the installation script ("./install.sh"). 
 
-The installer builds binaries (CLARK and CLARK-l, in the folder "exe" in <DIR_CLARK/>).
-In the folder  <DIR_CLARK/>, you can also notice that several scripts are available.
+The installation is done! You can now run CLARK and any of the provided scripts.
+
+The installer builds binaries (CLARK, CLARK-l and CLARK-S, in the folder "exe" in 
+CLARKSCV1.2.3). 
+
+== SCRIPTS
+
+After the installation, you can also notice that several scripts are available. 
 Especially:
-- set_targets.sh and classify_metagenome.sh: They allow you to classify your metagenomes
-against several database(s) (downloaded from NCBI or available "locally" in your disk)
 
-- estimate_abundance.sh: It computes the abundance estimation of a metagenome based on 
-CLARK results.
+- set_targets.sh and classify_metagenome.sh: They allow you to classify your 
+metagenomes against several database(s) (downloaded from NCBI or available 
+"locally" in your disk)
 
-- evaluate_density.sh: It takes in input one or several CLARK results (containing 
-confidence scores) and it outputs/plots the density of assignments per confidence score.
+- estimate_abundance.sh: It computes the abundance estimation (count/proportion 
+of objects assigned to targets).
+
+- evaluate_density_confidence.sh and evaluate_density_gamma.sh: These two scripts 
+take in input one or several CLARK results (containing confidence/gamma scores) 
+and output/plot the density of assignments per confidence score (or gamma score).
+
+- buildSpacedDB.sh: It creates the sets of discriminate spaced k-mers from the 
+selected databases.
+
+- clean.sh: This script will delete permanently all data related (generated and 
+downloaded) of the database directory defined in set_targets.h.
+
+- resetCustomDB.sh: It resets the targets definition with sequences (newly 
+added/modified) of the customized database. Any call of this script must be 
+followed by a run of set_target.sh.
+
+- updateTaxonomy.sh: To download the latest taxonomy data (taxonomy id, 
+accession numbers, etc.) from the NCBI website.
 
 
 == INTRODUCTION ON CLARK USAGE
@@ -198,30 +253,35 @@ from NCBI (i.e., genomes related to Bacteria, Viruses and Human), see section
 
 CLARK is a k-mer based classification method, and the value of k is critical for the 
 classification accuracy and speed. The user should use any value between 19 and 23 
-in order to get high sensitivity. For high sensitivity, we recommend k = 20 or 21.
+in order to get high sensitivity. For high sensitivity, we recommend k = 20 or 21 
+(along with the full mode).
 
 However, if the precision and the speed are the main concern, the user should use 
 any value between 26 and 32. However, the highest is k, the higher is the RAM usage.
-As a good tradeoff between speed, precision, and RAM usage, we recommend k = 31.
-The default k-mer length is 31.
+As a good tradeoff between speed, precision, and RAM usage, we recommend k = 31 (along
+with the default/express mode). The default k-mer length is 31.
 
 In the version 1.*, CLARK supports any k-mer length up to 32.
 
 
 == MANUAL & OPTIONS
 
+In this section, we describe options directly available with the CLARK executable 
+(binary file in the "exe" directory). 
+
 CLARK offers several options to run the classification. 
 
-A typical command line to run CLARK (or CLARK-l) looks like:
+A typical command line to run CLARK (or CLARK-l/CLARK-S) looks like:
 $ ./CLARK -k <kmerSize> -T <fileTargets> -t <minFreqTarget> -D <directoryDB/> -O <fileObjects> -o <minFreqObject> -R <fileResults> -m <mode> -n <numberofthreads> ...
 
 Definitions of parameters:
 
 -k <kmerSize>,       	 	k-mer length:	integer, >= 2 and <= 32 (in version 1.*). 
-			 	The default value for this parameter is 31, except for CLARK-l (it is 27).
+			 	The default value for this parameter is 31, except for CLARK-l (it is 27). 
+				For CLARK-S, k is set to 31 and the maximum number of mismatches is set to 9.
 
 -T <fileTargets>,    	 	The targets definition is written in fileTargets: filename.  
-				This is a two-column file (separated by space, comma or tab), such that, for each line:
+				This is a two-column file (separated by space, comma or tab), such that for each line:
 				column 1: the filename of a reference sequence
 				column 2: the target ID (taxon name, or taxonomy ID, ...) of the reference sequence 
 				(See example below).
@@ -247,15 +307,20 @@ Definitions of parameters:
 				".csv" is automatically added to the filename).
 				This parameter is mandatory. 
 
--m <mode>,           	 	mode of execution: 0,1,2, or 3
+-m <mode>,           	 	mode of execution: 0,1,2 or 3
 				0 (full):    To get detailed results, confidence scores and other statistics.
-					     This mode also guarantees the best sensitivity.
+					     This mode loads all discriminative (contiguous/spaced) k-mers.
+					     This mode is available for CLARK, CLARK-S and CLARK-l.
 				1 (default): To get results summary and perform best trade-off between
 					     classification speed, accuracy and RAM usage.
+					     This mode loads half discriminative (contiguous/spaced) k-mers.	
+					     This mode is available for CLARK and CLARK-l.
 				2 (express): To get results summary with the highest speed possible.
-				or 
-				3 (spectrum): To classify data that are given in spectrum form (i.e.,  
+				             This mode loads all discriminative (contiguous/spaced) k-mers.
+					     This mode is available for CLARK, CLARK-S and CLARK-l.
+				3 (spectrum):To classify data that are given in spectrum form (i.e.,  
 					       sequence data are in a two-column file, <k-mer> <count>). 
+					     This mode is available for CLARK and CLARK-l.
 				
 -n <numberofthreads>,	 	number of threads: integer >= 1.
 				The program runs in parallel for the classification and, with the option
@@ -264,19 +329,22 @@ Definitions of parameters:
 -g <iterations>,		"gap" or number of non-overlapping k-mers to pass when creating the
 				database (for CLARK-l only). The bigger the gap is, the lower the RAM 
 				usage is. The default value is 4, but the user can increase this value if 
-				needed to reduce the RAM usage (but this will degrade the sensitivity).
+				needed to reduce the RAM usage but this will degrade the sensitivity.
 
--s <factor>,			sampling factor value in the default mode (for CLARK only). 
-				The higher is this value, the higher are the classification speed
-				and the precision. However, our experiments show that the sensitivity
-				can be degraded. The default value is 2 because it represents a good 
+-s <factor>,			sampling factor value (for CLARK/CLARK-S only). If you want the program to load 
+				in memory only half the discriminative (contiguous/spaced) k-mers then use 
+				"-s 2". If you want a third of these k-mers then use "-s 3", etc.
+				The higher this factor is, the lower the RAM usage is. 
+				The higher this factor is, the higher the classification speed/precision is. 
+				However, our experiments show that the sensitivity can be quickly 
+				degraded, especially for values higher than 3. 
+				In the default mode, this factor is set to 2 because it represents a good 
 				trade-off between speed, accuracy and RAM usage.
 
---tsk,               	 	to request a detailed creation of the database 
-				(target specific k-mers files). For each target ID, the program
-				will create a file containing all target specific k-mers.
-				This option may require a high amount of disk space to complete. 
-				This option is only available for CLARK.
+--tsk,               	 	(to request a detailed creation of the database (target specific k-mers files). 
+				For each target, the program creates a file containing all its specific k-mers.
+				BEWARE: This option requires a high amount of disk space to complete.) 
+				This option is no more supported.
 
 --ldm,               	 	to request the loading of database file by memory mapped-file. 
 				This option accelerates the loading time but it will require an 
@@ -288,9 +356,8 @@ Definitions of parameters:
 				frequency for which k-mers are assumed to be informative
 				of the object. This interval is reported in the	results file.
 
---extended			to request the extended output of results in the full mode. This
-				includes hit counts for all targets. When selecting this feature,
-				the disk spaced by the results file is significantly increased.
+--extended			to request an extended output (result file), only for the full mode.
+
 
 When a filename is required, we recommend absolute paths.
 
@@ -298,7 +365,7 @@ When a filename is required, we recommend absolute paths.
 == LOW-LEVEL DESCRIPTION & EXAMPLES
 
 This section describes main features and options for running directly the executable 
-CLARK (or CLARK-l) built (in the folder "exe") after the installation. If you want
+CLARK (or CLARK-l/CLARK-S) built (in the folder "exe") after the installation. If you want
 to use CLARK as a metagenome classier, we recommend you use the provided scripts
 for that purpose and detailed in the section "CLASSIFICATION OF METAGENOMIC SAMPLES".
 However, we recommend the reader to go through this section to become familiar with 
@@ -307,13 +374,13 @@ CLARK's options/parameters.
 If you work directly with CLARK and CLARK-l files (e.g., to classify BAC/transcript 
 to chromosomes) then we recommend you copy them to your working directory. 
 
-In this section, the working directory is /home/user1/bin/ and, CLARK and CLARK-l 
-have been copied in it. Indeed,
+In this section, the working directory is /home/user1/bin/ and the binaries CLARK, CLARK-l 
+and CLARK-S have been copied in it. Indeed,
 
 $ pwd
  /home/user1/bin/
 $ ls
-CLARK CLARK-l
+CLARK CLARK-l CLARK-S
 $
 
 We describe in the following paragraph 1) how to create the targets definition with 
@@ -352,8 +419,8 @@ $ cat targets_addresses.txt
 /home/user1/bin/genome_10.fa S3
 $
 
-In this case, there are three distinct targets (S1, S2 and S3) that CLARK will use for 
-the classification. Defining targets at the genus-level would be:
+In this case, there are three distinct targets (S1, S2 and S3) that the program 
+will use for the classification. Defining targets at the genus-level would be:
 
 $ cat targets_addresses.txt
 /home/user1/bin/genome_1.fa G1
@@ -409,11 +476,11 @@ $ ./CLARK -k 20 -T ./targets_addresses.txt -D ./DBD/ -O ./objects.fa -R ./result
 
 Note that the results file will have the extension "csv". 
 
-If CLARK is run for the first time on the defined targets and the given k-mer length, then
- CLARK builds first the database, which gathers all Target Specific K-mers (TSK). 
+If CLARK is run for the first time on the defined targets and the given k-mer length, 
+then CLARK builds first the database, which gathers all Target Specific K-mers (TSK). 
 If CLARK is run again on the same targets and same k-mer length, then it will directly 
-load TSK files previously produced. Once the classification is done, the file results.csv 
-is created.
+load TSK files previously produced. Once the classification is done, 
+the file results.csv is created.
 
 1.1) Exclusion of discriminative k-mers of low frequency in the database
 
@@ -437,7 +504,7 @@ In version 1*, this option is available ONLY for the spectrum mode (mode 3), see
 "MANUAL & OPTIONS".
 
 
-2) Fast, Full and Spectrum Mode:
+2) Fast, Full, Spaced and Spectrum Mode:
 
 Previous instructions used the default mode of CLARK (i.e., "-m 1"). To use the "express"
  mode to get results more quickly, then simply add the option "-m 2". For the "full" mode 
@@ -454,27 +521,96 @@ $ ./CLARK -k 20 -T ./targets_addresses.txt -D ./DBD/ -O ./objects.fa -R ./result
 is equivalent to
 $ ./CLARK -k 20 -T ./targets_addresses.txt -D ./DBD/ -O ./objects.fa -R ./results
 
-Finally, in the case objects are given as spectrum (a two-column file), the user should 
+In the case objects are given as spectrum (a two-column file), the user should 
 indicate it with the option "-m 3":
 $ ./CLARK -k 20 -T ./targets_addresses.txt -D ./DBD/ -O ./objects.fa -R ./results -m 3
 
-If you do not know what mode to use, then the default mode is the best. It executes
-fast, is precise and uses less RAM than other modes (because it does not load in RAM all 
-discriminative k-mers stored in disk for the classification).
 
-If you want detailed results and statistics for all assignments, then use the full mode.
-This mode guarantees the best sensitivity compared to other modes because it loads
-in memory and uses all discriminative k-mers. The spectrum mode can also be a solution 
-for you, if your data are in the spectrum format.
+IMPORTANT NOTES:
+Whatever you use CLARK, CLARK-l or CLARK-S:
+- The full mode (i.e., "-m 0") loads all discriminative k-mers in RAM and provides 
+confidence score for all assignments. Thus, it offers high sensitivity.  
+If your data are in the spectrum format, then the spectrum mode (-m 3) is a solution 
+for you. 
+- If your primary concern is the speed, and do not need detailed results, nor confidence
+scores, then use the "express" mode (-m 2), the fastest mode. 
 
-If your primary constraint is the speed, and do not need detailed results, then use the 
-express mode, the fastest mode.
+For CLARK or CLARK-l:
+- If you do not know what mode to use, then use the default mode (-m 1). It loads in RAM
+about half discriminative k-mers stored in disk. Thus, the RAM usage is lower than that
+of other modes, but its sensitivity is not the highest. However, the precision and speed
+are high, and the default mode is a good compromise between speed, RAM usage and high 
+precision/sensitivity.
+
+Finally:
+- If you analyze a metagenomic sample from a poorly known microbial habitat (i.e., 
+the default RefSeq database is likely not to contain a large fraction of genomes of 
+organisms present in your sample), for example, sea water, etc. then use CLARK-S 
+with full mode. CLARK-S uses multiple spaced k-mers instead of contiguous k-mers, 
+and it produces detailed results. However, this variant is the most RAM-consuming. 
+Unlike CLARK, results produced by CLARK-S are already filtered (i.e., assignments 
+with confidence score < 0.75 or gamma score < 0.06 are rejected). 
+However, you can use a stricter filtering to get more precise results 
+(see option of the script estimate_abundance.sh). 
 
 
-3) Multi-Objects:
+2.1) Running CLARK-S:
 
-To classify several fasta files, under the same settings, it is possible to pass all 
-of them conveniently. Say the user has 3 fasta files, located in the current working 
+The current release exploits spaced k-mers of length 31 and weight 22. Before classifying your 
+metagenomic sample, the database of discriminative 31-mers (e.g., from bacterial genomes) and 
+then the database of discriminative spaced 31-mers (using the script "buildSpacedDB.sh")
+must be created.
+
+Step 0 (Set the database and its directory "DBD"):
+
+$ ./set_targets.sh ./DBD/ bacteria --phylum 
+(or $ ./set_targets.sh ./DBD/ bacteria --species)
+
+where "DBD" is the directory where you want to store bacteria genomes and create the database. 
+
+Step 1 (Build the database of discriminative 31-mers):
+
+If the database files of 31-mers are already created for the database and the rank specified 
+in step 0 then you can skip this step.
+This can be done by running any classification with k=31, for example: 
+$ ./classify_metagenome.sh -O sample.fa -R result
+
+where sample.fa is some fasta file data. This operation is only needed to create the  
+database of discriminative 31-mers.
+
+Step 2 (Create the databases of discriminative spaced k-mers):
+
+$ ./buildSpacedDB.sh
+
+This task will take several hours to create discriminative spaced k-mers for all the
+3 spaced seeds (i.e., about 6 to 7 hours). This operation will write about 60 GBytes of
+data on disk.
+ 
+Finally, to classify your metagenome (for example, sample.fq) run:
+$ ./exe/CLARK-S -T ./targets_addresses.txt -D ./DBD/ -O ./sample.fq -R ./result -m 0
+or
+$ ./classify_metagenome.sh -O sample.fq -R result --spaced
+
+Note: If you decide to work with a different taxonomy rank and/or database then 
+you will need to repeat the step 0 and step 1.
+
+
+3) Paired-end reads:
+
+CLARK accepts paired-end reads (fastq files) as objects. Indicate it with the option "-P"
+and the two filenames (CLARK will concatenate paired reads with matching ID).
+An example of command line, using default mode, is:
+
+$ ./CLARK -k 20 -T ./targets_addresses.txt -D ./DBD/ -P ./sample1.fastq ./sample2.fastq -R paired.results
+
+
+4) Multi-Objects (or multiple sample files):
+
+The program can process several sample files at the same time (i.e., no need to reload the database 
+or restart the program for each sample). 
+To classify several fasta/fastq files under the same settings (e.g., mode, threads, etc.) ,
+it is possible to pass all of them conveniently (i.e., without the need to reload 
+the database for each file). Say the user has 3 fasta files, located in the current working 
 directory, ./objects_1.fa, ./objects_2.fa and ./objects_3.fa. To pass these three files
 at once, create a file (e.g., "objects.txt") containing filenames of these fasta files:
 
@@ -496,23 +632,39 @@ $
 ./results_1.csv will contain results related to ./objects_1.fa, ..., and 
 ./results_3.csv will contain results related to ./objects_3.fa.
 
-Note: the "results.txt" file can be a duplicate of "objects.txt" (since the program takes 
-the name of each object file to create a results file with extension "csv").
-
-Then, run:
-$ ./CLARK -k 20 -T ./targets_addresses.txt -D ./DBD/ -O ./objects.txt -R ./results.txt
-
-Once the classification is done, results_1.csv, results_2.csv and results_3.csv are created. 
+Indeed, once the classification is done, results_1.csv, results_2.csv and results_3.csv are created.
 This way assures that the user can pass any amount of objects files in a scalable fashion.
 
+Note: the "results.txt" file can be just a duplicate (or a simple copy) of "objects.txt". 
+Since the program create results files with extension "csv", so you can create these results 
+files by using the filename of the fastq/fasta file as prefix.
 
-4) Paired-end reads:
+For example, if you run:
+$ ./CLARK -k 20 -T ./targets_addresses.txt -D ./DBD/ -O ./objects.txt -R ./objects.txt
 
-CLARK accepts paired-end reads (fastq files) as objects. Indicate it with the option "-P" 
-and the two filenames (CLARK will concatenate paired reads with matching ID). 
-An example of command line, using default mode, is:
+The program will store the results files as ./objects_1.fa.csv, ./objects_2.fa.csv and ./objects_3.fa.csv
 
-$ ./CLARK -k 20 -T ./targets_addresses.txt -D ./DBD/ -P ./sample1.fastq ./sample2.fastq -R paired.results
+Same for paired-end reads:
+$ ./CLARK -k 20 -T ./targets_addresses.txt -O ./DBD/ -P ./paired1.txt ./paired2.txt -R ./results.txt
+
+where files paired1.txt aand paired2.txt contain addresses of paired-end reads:
+$ cat paired1.txt
+./sample1_R1.fq
+./sample2_R1.fq
+./sample3_R1.fq
+
+$ cat paired2.txt
+./sample1_R2.fq
+./sample2_R2.fq
+./sample3_R2.fq
+
+$ cat results.txt
+./results_1
+./results_2
+./results_3
+
+Once computations done, results for the paired-end reads for each of the three samples are stored in:
+results_1.csv, results_2.csv and results_3.csv.
 
 
 5) Multi-threading:
@@ -585,14 +737,14 @@ from NCBI) or a customized set of genomes.
 First, we present here two scripts, "set_targets.sh" and "./classify_metagenome.sh" that 
 work together.
 Second, we present the script to get the abundance estimation (count and proportion for each 
-target), "estimate_abundance.sh", from one or several results file(s) by CLARK.
+target identified), "estimate_abundance.sh", from one or several results file(s).
 
 
 1) Setting and classification
 
 1.1) Step I: Setting targets
 
-After installing CLARK (./install.sh), the user must create a directory to store all 
+After the installation (./install.sh), the user must create a directory to store all 
 reference sequences (bacteria, viruses, human and custom). For all our examples below,
 we name this directory path in a generic way <DIR_DB/> for clarity. This directory
 can be anywhere in your disk(s).
@@ -607,11 +759,16 @@ To work with bacteria, viruses and human:
 $ ./set_targets.sh <DIR_DB/> bacteria viruses human
 
 To classify against a custom database:
-The user will need to paste its sequences (fasta files with GI number in header, and 
-one fasta file per reference sequence) in the directory "Custom", inside <DIR_DB/>. 
-To do so, the user must (1) create the directory "Custom" inside  <DIR_DB/> (if it
-does not exist yet) (2) copy or move sequences of interest in Custom and (3) run:
+The user will need to copy/move the sequences (fasta files with accession numbers in the 
+header, i.e., ">accession.number ..." or ">gi|number|ref|accession.number| ...", 
+and one fasta file per reference sequence) in the directory "Custom", inside <DIR_DB/>, 
+and then run set_targets. In order words, the user must:
+(1) create the directory "Custom" inside  <DIR_DB/> (if it does not exist yet);
+(2) copy/move the sequences of interest in the Custom;
+(3) run:
 $ ./set_targets.sh <DIR_DB/> custom
+or for example, when combining the bacteria genomes with the Custom sequences:
+$ ./set_targets.sh <DIR_DB/> bacteria custom
 
 
 In general case (when the user selects bacteria, viruses and/or human), 
@@ -625,7 +782,7 @@ genus, the command line is (from the example selecting bacteria, viruses and hum
 
 $ ./set_targets.sh <DIR_DB/> bacteria viruses human --genus
 
-In the current version of CLARK, the user can choose between six ranks (species to phylum):
+In the current release, the user can choose between six ranks (species to phylum):
 --species (the default value), --genus, --family, --order, --class or --phylum.
 
 Indeed, the strength of CLARK is to be able to classify quickly and accurately 
@@ -635,8 +792,8 @@ Consider first the genus or species rank, then if a high proportion of reads
 cannot be classified, reset your targets definition at a higher taxonomy rank 
 (e.g., family or phylum).
 
-Once set_targets.sh is finished, the user can proceed to the step II. However, 
-if the user wants to modify the selected databases and/or taxonomy rank, then he/she will 
+Once set_targets.sh is finished, the user can proceed to the step II. However, if 
+the user wants to modify the selected databases and/or taxonomy rank, then he/she will 
 need to run again set_targets.sh with updated parameters before proceeding to step II.
 
 1.2) Step II: Running the classification
@@ -644,8 +801,8 @@ need to run again set_targets.sh with updated parameters before proceeding to st
 The script to run the classification of a metagenomic sample against the database(s) 
 previously set in step I is "classify_metagenome.sh".
 
-For your convenience, this script runs the executable CLARK (or CLARK-l) and allows you 
-to pass few parameters.
+For your convenience, this script runs the executable CLARK, CLARK-l or CLARK and allows 
+you to pass few parameters.
 
 For example, say objects to be classified are reads in "sample.fa" (e.g., located in the 
 current directory), and results to be stored in "result.csv". A basic command line is:
@@ -661,20 +818,33 @@ IMPORTANT NOTES:
 - The targets definition is automatically passed to CLARK in step II. The file has been
  computed by set_targets.sh.
 
-- The script set_targets.sh assumes that each reference file from bacteria, viruses or custom
-database contains a GI number (in the RefSeq records format: ">gi|<number>|ref|<accession>|<text>"). 
-If a GI number is missing in a file, then this file will not be used for the classification. 
+- The script set_targets.sh assumes that each reference file from bacteria, viruses or 
+custom database contains an accession numberr (in the RefSeq records format: 
+i.e., ">accession.number ..." or ">gi|number|ref|accession.number| ..." ). 
+If an accession number is missing in a file then this file will not be used 
+for the classification. 
 
-- set_targets.sh also maps the GI number found in each reference sequence to its taxonomy ID
-based on the latest NCBI taxonomy data. If a mapping cannot be made for a given sequence, 
-then it will be counted and excluded from the targets definition.
-The total number of excluded files is prompted in the standard output, and all files that have
-been excluded are reported in the file "files_excluded.txt" (located in the the specified
+- set_targets.sh also maps the accession number found in each reference sequence to its 
+taxonomy ID based on the latest NCBI taxonomy data. If a mapping cannot be made for a 
+given sequence, then it will NOT be counted and excluded from the targets definition.
+The total number of excluded files is prompted in the standard output, and all files that 
+have been excluded are reported in the file "files_excluded.txt" (located in the specified
 database directory (i.e., "./DBD/").
-If some files are excluded, then it will probably mean that they have been removed 
-for curations for example (visit the RefSeq FAQ webpage).
+If some files are excluded, then it will probably mean that they have been removed for 
+curations for example (visit the RefSeq FAQ webpage) or maybe because your local taxonomy
+information are no nore up-to-date (see next point).
 
-- The database files (*.ky, *.lb and *.sz) will be created inside some subdirectory of the 
+- You can update your local taxonomy database thanks to the script "updateTaxonomy.sh"
+You can use this script before running set_targets.sh.
+
+- If the user wants to work with a different customized database (for example, by removing
+or adding more sequences of interest in the Custom folder) then the targets definition
+must be reset. We made it simple with the script "resetCustomDB.sh": 
+After the sequences in the Custom folder have been updated, just run:
+$ ./resetCustomDB.sh
+Then, run set_target.sh with the desired settings.
+
+- The database files (*.ky, *.lb and *.sz) will be created inside a subdirectory of the 
 specified database directory in step I (i.e., "./DBD/") by classify_metagenome.sh.
 
 - The default values (the k-mer length, the mode, the number of threads, etc.) are used 
@@ -687,47 +857,97 @@ the number of parallel threads, mode, etc.
 
 We present below some examples of customized classification using classify_metagenome.sh.
 
-To use 20-mers (instead of 31-mers):
+a) To use 20-mers (instead of 31-mers):
 $ ./classify_metagenome.sh -O ./sample.fa -R ./result -k 20
 
-To request the full mode:
+b) To request the full mode:
 $ ./classify_metagenome.sh -O ./sample.fa -R ./result -m 0
 
-To request the express mode, and 8 threads:
+c) To classify in full mode multiple sample files (single-end reads):
+$ ./classify_metagenome.sh -O ./samples.txt -R ./samples.txt -m 0
+
+where, the file "samples.txt" contains the addresses of all the sample files to be run:
+$ cat samples.txt
+./sample1.fa
+./sample2.fa
+./sample3.fa
+./sample4.fastq
+./sample5.fq
+./sample6.fq
+...
+
+d) To classify in full mode multiple sample files (paired-end reads):
+$ ./classify_metagenome.sh -O ./samples.R.txt ./samples.L.txt -R ./samples.R.txt -m 0
+
+where, files "samples.R.txt" and "samples.L.txt" contain the addresses of all the fastq files
+(right and left) to be run:
+$ cat samples.R.txt
+./sample1.R1.fq
+./sample2.R1.fq
+./sample3.R1.fq
+...
+
+$ cat samples.L.txt
+./sample1.R2.fq
+./sample2.R2.fq
+./sample3.R2.fq
+...
+
+Observe in this example that the order of right and left paired-end reads of each sample must be 
+preserved in "samples.R.txt" and "samples.L.txt" .
+
+e) To request the express mode, and 8 threads:
 $ ./classify_metagenome.sh -O ./sample.fa -R ./result -m 2 -n 8
 
-To request the full mode, with gzipped objects file, and using 8 threads:
+f) To request the full mode, with gzipped objects file, and using 8 threads:
 $ ./classify_metagenome.sh -O ./sample.fa.gz -R ./result -m 0 -n 8 --gzipped
 
-Another example, for classifying paired-end reads (./sample1.fastq and ./sample2.fastq):
+Another example, in default mode, for classifying paired-end reads (./sample1.fastq 
+and ./sample2.fastq):
 $ ./classify_metagenome.sh -P ./sample1.fastq ./sample2.fastq -R ./result
 
-Note:
+Notes:
 This script can run CLARK-l instead of CLARK, for workstations with limited RAM. 
 Then, the user can indicate it with the option  "--light". For example:
 
 $ ./classify_metagenome.sh -P ./sample1.fastq ./sample2.fastq -R ./result --light
 
+This script can run CLARK-S instead of CLARK, if the database files of discriminative
+of spaced k-mers have been built. To use CLARK-S, the option is "--spaced". For example:
+
+$ ./classify_metagenome.sh -P ./sample1.fastq ./sample2.fastq -R ./result --spaced
+
+g) To run CLARK-S with full mode and using 8 threads:
+$ ./classify_metagenome.sh -O ./sample.fa -R ./result -m 0 -n 8 --gzipped --spaced
+
+h) To run CLARK-S with express mode and using 8 threads on a gzipped file:
+$ ./classify_metagenome.sh -O ./sample.fa.gz -R ./result -m 2 -n 8 --spaced
+
+If you want to run CLARK-S but with a much lower RAM usage then you can decide
+to download only half the discriminative spaced k-mers in memory using "-s 2".
+For example:
+$ ./classify_metagenome.sh -O ./sample.fa -R ./result --spaced -s 2
+
 Note:
-Typing only "./classify_metagenome.sh" in the terminal will prompt the help describing 
+run "./classify_metagenome.sh" in the terminal to prompt the help/usage describing 
 options and parameters.
 
 
 2) Abundance estimation
 
 The script "estimate_abundance.sh" can analyze CLARK results of a metagenomic sample, 
-and can provide for each target identified, its lineage, the count and proportion of
-objects assigned to it (with/without the count of identified reads). This script 
-also allows to apply some filtering conditions (based on the confidence score or 
-gamma score of assignments) to obtain a stricter estimation.
+and can provide for each target identified, its scientific name, taxonomy id, lineage 
+(superkingdom, phylum, class, order, family, genus), its count and proportion of objects 
+assigned to it. This script also allows to apply some filtering conditions (based on
+ the confidence score or gamma score of assignments) to obtain a stricter estimation.
 The output format of estimate_abundance.sh is CSV.
 
 For example, say a metagenomic sample contains 100 reads, results by CLARK (full mode) 
-indicate that 20 (20%) reads are assigned to the target T1, 70 (70%) are assigned to T2, 
+indicates that 20 reads (20%) are assigned to the target T1, 70 (70%) are assigned to T2, 
 and 10 (10%) are not assigned ("NA"). Thus, the abundance estimation program reports 
-a count of 20 (or 22.2% of the classified reads) for T1, 70 ( or 77.7% of the 
-classified reads) for T2, and a count of 10 for the category "UNKNOWN" (collecting 
-all unassigned reads or assignments that do not satisfy filtering conditions).
+a count of 20 (or 22.2% of the assigned reads) for T1, 70 (or 77.7%) for T2, and a 
+count of 10 for the category "UNKNOWN" (collecting all unassigned reads or 
+assignments that do not satisfy filtering conditions). 
 We give below examples of command lines.
 
 Parameters and options of this script are:
@@ -773,6 +993,15 @@ Definition of parameters:
 --highconfidence       	   To automatically count only high confidence assignments for the 
 			   abundance estimation. This option is equivalent to "-c 0.75 -g 0.03".
 
+--krona		 	   To export results in a 3-column file for the Krona tool 
+			   (Hierarchical data browser, Ondov et al, BMC Bioinformatics, 2011,
+                       	   doi: 10.1186/1471-2105-12-385. https://github.com/marbl/Krona/wiki).
+                       	   With this option on, the program will create the file 'results.krn' containing 
+                       	   the unnormalized abundance from CLARK's assignments (with the filtering options if any).
+                       	   Then, to create the Krona diagram, call the executable ktImportTaxonomy (from
+			   your Krona directory) with the option '-m 3'. For example:
+			   $ ktImportTaxonomy -o results.html -m 3 results.krn
+
 Examples:
 
 i) To get the abundance estimation of the results file, ./result.csv:
@@ -795,7 +1024,7 @@ iii) To filter assignnments by using a certain confidence score threshold
 
 $ ./estimate_abundance.sh -F ./result.csv -D <DIR_DB/> -c 0.80
 
-To filter assignnments using a gamma score threshold (for example, 0.03)
+To filter assignnments using a gamma score threshold (for example, -g 0.03)
 
 $ ./estimate_abundance.sh -F ./result.csv -D <DIR_DB/> -g 0.03
 
@@ -804,19 +1033,18 @@ Filtering based on the confidence score and/or gamma on a results file is possib
 only if the file was built using the full or spectrum mode. Indeed, default 
 and express mode do not produce confidence scores or gamma scores.
 
-Important note:
-The full mode produces results with high sensitivity but at the cost of a 
-lower precision than that of the default/express mode. To compensate the loss 
-in precision, we recommend users to filter results: 
-Consider ONLY assignments with confidence score >= 0.75 AND gamma value >= 0.03
-(use the option "--highconfidence" for this). This guarantees both 
+IMPORTANT NOTE:
+From the v1.2.3, results of CLARK-S are automatically filtered. Assignments with 
+low confidence score (i.e., < 0.75) or low gamma value (i.e., < 0.06) are considered 
+as low confidence assignments and thus marked as unknown or "NA". 
+In other words, only high confidence assignments are kept to guarantee both 
 high sensitivity and high precision.
 
-iv) If your result files is large (i.e., contains a lot of assignments) then
-the output of the abundance estimation program can be large too.
-You can filter abundances by setting a minimum abundance percentage. 
+iv) If your result files are large (i.e., contain a lot of targets) then the 
+output of the abundance estimation program can be large too. You can filter 
+abundances by setting a minimum abundance percentage. 
 
-For example, if you want the program to print out abundances higher than 2% only, then:
+For example, to print out abundances higher than 2% only, then:
 
 $ ./estimate_abundance.sh -F ./result.csv -D <DIR_DB/> -a 2
 
@@ -829,47 +1057,53 @@ the same mode (see parameters and options above). Results from different
 modes of execution SHOULD NOT be mixed.
 
 We also remind the user that another script manipulating results files
-is offered, "evaluate_density.sh". This script estimates and plots the density of
-assignments per confidence score. It takes in input results file(s) produced
-in the full (or spectrum) mode only.
+is offered, "evaluate_density_confidence.sh" (resp. "evaluate_density_gamma.sh"). 
+This script estimates and plots the density of assignments per confidence score 
+(resp. gamma score). It takes in input results file(s) produced 
+in the full/spectrum mode only.
 
 
 == RESULTS FORMAT
 
 Results are in CSV format. Confidence scores and other statistics about assignments 
-are computed only in the full mode.
+are computed only in the full/spectrum mode.
 
-In the full or spectrum mode, with the option "--extended", 
-the results format is the following for each line:
+In the full mode (extended), the results format is the following for each line:
 <Object_ID>,<hit count in target 1>,...,<hit count in target N>,<Length of object>,<Gamma>,<first assignment>,<hit count of first>,<second assignment>,<hit count of second>,<confidence score> where :
 * the "Object_ID"        is the tag name indicated in the header (after ">" or "@") for each 
 			 object, and N is the number of targets. 
 			 In the spectrum mode, this tag name is merely the filename.
-* hit count in target i  is the number of k-mers specific to target i that are in the object.
-			 (only if the option "--extended" is on.)
+* hit count in target i  is the number of k-mers specific to target i that are in the object
+			 (if the option "--extended" is on).
 * Length of object       is the number of bases (A,C,G,T,U or N) the object has.
 * Gamma                  is the ratio between the total number of hit found in the object 
 			 (against all targets) and the number of k-mers in the object.
 * first assignment       is the target ID of the target that obtained the highest hit count
-                         (ties are broken arbitrarily).
+                         (ties are broken arbitrarily: the 1st assignment is the target 
+			 having the first hit).
 * hit count of first     is the number of hit count for the first assignment (h1).
 * second assignment      is the target ID of the target that obtained the second highest hit 
                          count (ties are broken arbitrarily).
 * hit count of second    is the number of hit count for the second assignment (h2).
 * confidence score       is the ratio : h1/(h1+h2).
 
+
 In the default or express mode, the results format is the following for each line:
 <Object_ID>,<Length of object>,<1st_assignment>, where :
 
 * the "Object_ID"        is the tag name indicated in the header 
-                         (after ">" or "@") for each object, and N is the number of targets.
-* Length of object       is the number of bases (A,C,G,T,U or N) the object has.
+                         (after ">" or "@") for each object.
+* Length of object       is the number of bases the object has.
 * 1st assignment         is the target ID of the target that obtained the highest hit count
-                         (ties are broken arbitrarily).
+                         (ties are broken arbitrarily: the 1st assignment is the 
+			 target having the first hit).
 
 
 == VERSIONS
 
+Version 1.2.3 April 7, 2016.
+Version 1.2.2-b December 11, 2015.
+Version 1.2.1-b June 15, 2015.
 Version 1.1.3 June 3, 2015.
 Version 1.1.2 April 22, 2015.
 Version 1.1.1 April 15, 2015.

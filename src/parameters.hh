@@ -1,6 +1,6 @@
 /*
    CuCLARK, CLARK for CUDA-enabled GPUs.
-   Copyright 2016, Robin Kobus <rkobus@students.uni-mainz.de>
+   Copyright 2016-2017, Robin Kobus <rkobus@students.uni-mainz.de>
    
    based on CLARK version 1.1.3, CLAssifier based on Reduced K-mers.
    Copyright 2013-2016, Rachid Ounit <rouni001@cs.ucr.edu>
@@ -32,7 +32,7 @@
 #ifndef PARAMETERS_HH
 #define PARAMETERS_HH
 
-#define VERSION "1.0"
+#define VERSION "1.1"
 
 #define SB              4       
 #define LHTSIZE 	57777779

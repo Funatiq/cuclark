@@ -16,7 +16,7 @@
    You should have received a copy of the GNU General Public License
    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-   Copyright 2013-2015, Rachid Ounit <rouni001@cs.ucr.edu>
+   Copyright 2013-2016, Rachid Ounit <rouni001@cs.ucr.edu>
  */
 
 /*
@@ -39,7 +39,7 @@ int main(int argc, char** argv)
 {
 	if (argc < 2)
 	{
-		cerr << "Usage: " << argv[0] << " <FilestoTaxIDs>, option: <Rank: 0,1,2,3,4,5>, 0 for species,...,5 for phylum. Default is species." << endl; 
+		cerr << "Usage: " << argv[0] << " <FilestoTaxIDs>, option: <Rank: 0,1,2,3,4,5>, 0 for species, 1 for genus, ..., 5 for phylum. Default is species." << endl; 
 		exit(1);
 	}
 	FILE * fd = fopen(argv[1], "r");

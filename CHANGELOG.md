@@ -1,6 +1,6 @@
 # Change Log
 
-## v1.1 - 2017-01-02
+## v1.1 - 2017-01-04
 ### Updates
 - Ported some features from CLARK v1.2.3:
   - Feature to pass multiple datasets of paired-end reads.

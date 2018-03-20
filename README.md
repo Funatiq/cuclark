@@ -10,7 +10,7 @@ The program comes in two variants: CuCLARK and CuCLARK-l.
 CuCLARK is designed for workstations which can provide enough RAM to fit large databases 
 (like all bacterial genomes in NCBI/RefSeq) and an arbitrary number of CUDA-enabled GPUs.
 CuCLARK-l uses a much smaller database and can be run on computers with 4 GB of RAM and 
-a CUDA-enabled with at least 1 GB of memory.
+a CUDA-enabled GPU with at least 1 GB of memory.
 
 To use CuCLARK as a metagenome classifier, it is recommended to use the provided scripts 
 for that purpose, which are detailed in the section "CLASSIFICATION OF METAGENOMIC SAMPLES".

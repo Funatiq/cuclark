@@ -277,7 +277,7 @@ CuClarkDB<HKMERr>::~CuClarkDB()
  * Reset memory allocations before new input file.
  */
 template <typename HKMERr>
-void CuClarkDB<HKMERr>::free()
+void CuClarkDB<HKMERr>::freeBatchMemory()
 {
 	//~ cudaSetDevice(0);
 	for (int i=0; i<m_numBatches; i++)

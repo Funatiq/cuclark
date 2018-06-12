@@ -148,7 +148,7 @@ class CuCLARK
 				const bool&		_isExtended = false
 			);
 
-		void clear();
+		void clearReadData();
 
 	private:
 
@@ -258,7 +258,7 @@ CuCLARK<HKMERr>::CuCLARK(const size_t& 	_kmerLength,
 	m_seqENames.resize(m_numBatches);
 	m_seqSNames.resize(m_numBatches);
 	
-	m_batchScheduled.resize(m_numBatches);
+	m_batchScheduled.assign(m_numBatches, false);
 
 	size_t base = 1;
 	for(size_t p = 0; p < m_kmerSize ; p++)
@@ -312,12 +312,11 @@ CuCLARK<HKMERr>::CuCLARK(const size_t& 	_kmerLength,
 template <typename HKMERr>
 CuCLARK<HKMERr>::~CuCLARK()
 {
-	clear();
 	delete m_centralHt;
 }
 
 template <typename HKMERr>
-void CuCLARK<HKMERr>::clear()
+void CuCLARK<HKMERr>::clearReadData()
 {
 	m_nbObjects = 0;
 
@@ -333,7 +332,7 @@ void CuCLARK<HKMERr>::clear()
 		m_batchScheduled[i] = false;
 	}
 	
-	m_cuClarkDb->free();
+	m_cuClarkDb->freeBatchMemory();
 }
 
 /**
@@ -512,7 +511,6 @@ void CuCLARK<HKMERr>::run(const char* _pairedfile1, const char* _pairedfile2, co
 template <typename HKMERr>
 void CuCLARK<HKMERr>::runSimple(const char* _fileTofilesname, const char* _fileResult, const ITYPE& _minCountO)
 {
-	clear();
 	m_cuClarkDb->swapDbParts();
 	m_cuClarkDb->sync();
 	
@@ -553,28 +551,22 @@ void CuCLARK<HKMERr>::runSimple(const char* _fileTofilesname, const char* _fileR
 
 	fclose(_fout);
 
-	if (true)
-	{
-		gettimeofday(&requestStart, NULL);	
-		///////////////////////////////////////////////////////////////////////
-		//~ getObjectsDataComputeFull(map, fileSize);
-		getObjectsDataComputeFullGPU(map, fileSize, fileResult);
-		//~ printExtendedResults(fileResult);
-		///////////////////////////////////////////////////////////////////////
-		gettimeofday(&requestEnd, NULL);
-		// Measurement execution time
-		printSpeedStats(requestEnd,requestStart,fileResult);
 
-		msync(map, fileSize, MS_SYNC);
-		if (munmap(map, fileSize) == -1)
-		{       cerr << "Error un-mmapping the file." << endl;}
-		close(fd);
-		return;
-	}
+	gettimeofday(&requestStart, NULL);
+	///////////////////////////////////////////////////////////////////////
+	//~ getObjectsDataComputeFull(map, fileSize);
+	getObjectsDataComputeFullGPU(map, fileSize, fileResult);
+	//~ printExtendedResults(fileResult);
+	///////////////////////////////////////////////////////////////////////
+	gettimeofday(&requestEnd, NULL);
+	// Measurement execution time
+	printSpeedStats(requestEnd, requestStart, fileResult);
 
 	msync(map, fileSize, MS_SYNC);
 	if (munmap(map, fileSize) == -1)
-	{       cerr << "Error un-mmapping the file." << endl;;}
+	{
+		cerr << "Error un-mmapping the file." << endl;
+	}
 	close(fd);
 
 	return;
@@ -1789,6 +1781,8 @@ void CuCLARK<HKMERr>::getObjectsDataComputeFullGPU(const uint8_t * _map,  const 
 		//~ std::cerr << "CPU ready to write.\n";
 		printExtendedResultsSynced(_map, _fileResult);
 	}
+
+	clearReadData();
 	
 	return;
 }

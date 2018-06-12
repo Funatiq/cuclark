@@ -105,7 +105,7 @@ class CuClarkDB
 		
 		~CuClarkDB();
 		
-		void free();
+		void freeBatchMemory();
 		
 		size_t malloc(	size_t _numReads,
 						size_t _maxReads,
